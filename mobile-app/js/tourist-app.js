@@ -372,3 +372,85 @@ const safetyApp = {
 document.addEventListener('DOMContentLoaded', () => {
     safetyApp.init();
 });
+// Broadcast to authority dashboard
+ const emergencyId = emergencyBroadcaster.broadcastEmergency(emergencyData);
+
+        const emergency = {
+            id: emergencyId,
+            type: type,
+            name: emergencyConfig.name,
+            location: coordinates,
+            timestamp: new Date().toLocaleString(),
+            status: 'ACTIVE',
+            responder: null
+        };
+
+        this.state.emergencies.unshift(emergency);
+        this.updateEmergencyHistory();
+
+        // Show confirmation with live tracking info
+        this.showModal(
+            '🚨 EMERGENCY ALERT SENT',
+            `Emergency Type: <strong>${emergencyConfig.name}</strong><br>
+             Location: <code>${emergency.location}</code><br>
+             Time: ${emergency.timestamp}<br>
+             <span style="color: var(--success);">✓ Live location sharing active</span><br>
+             <span style="color: var(--success);">✓ Nearest responders notified</span>`
+        );
+
+        this.updateResponseStatus('Live location sharing with authorities...');
+
+        // Start live location updates for this emergency
+        this.startLiveLocationSharing(emergencyId);
+    },
+
+    // Start continuous location sharing for active emergency
+    startLiveLocationSharing(emergencyId) {
+        const locationUpdateInterval = setInterval(() => {
+            if (this.state.userLocation) {
+                emergencyBroadcaster.updateEmergency(emergencyId, {
+                    coordinates: `${this.state.userLocation.lat},${this.state.userLocation.lng}`,
+                    lastUpdate: new Date().toISOString()
+                });
+            }
+        }, 5000); // Update every 5 seconds
+
+        // Store interval ID to clear later
+        this.state.activeEmergencyInterval = locationUpdateInterval;
+    },
+
+    // Get approximate address from coordinates
+    getAddressFromCoordinates(coords) {
+        // In real app, you'd use reverse geocoding API
+        return `Near ${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
+    },
+
+    // Generate unique tourist ID
+    getTouristId() {
+        let touristId = localStorage.getItem('touristId');
+        if (!touristId) {
+            touristId = 'TOURIST_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('touristId', touristId);
+        }
+        return touristId;
+    },
+
+    // Get additional emergency information
+    getAdditionalEmergencyInfo(type) {
+        const info = {
+            batteryLevel: navigator.getBattery ? 'Unknown' : 'N/A',
+            networkType: navigator.connection ? navigator.connection.effectiveType : 'Unknown',
+            timestamp: new Date().toISOString()
+        };
+
+        if (type === 'MEDICAL') {
+            info.medicalNotes = 'Automatic medical alert - urgent assistance required';
+        } else if (type === 'CRITICAL') {
+            info.priority = 'HIGHEST';
+        }
+
+        return info;
+    },
+
+    // ... rest of existing code ...
+};
