@@ -1,44 +1,80 @@
 const safetyApp = {
-    map: null,
-    userMarker: null,
-    userLocation: null,
-    emergencies: [],
-    watchId: null,
-    locationAccessGranted: false,
+    // App configuration
+    config: {
+        emergencyTypes: {
+            'CRITICAL': { 
+                name: 'Critical Emergency', 
+                description: 'Immediate danger response',
+                color: '#dc3545'
+            },
+            'MEDICAL': { 
+                name: 'Medical Assistance', 
+                description: 'Health emergency response',
+                color: '#28a745'
+            },
+            'SECURITY': { 
+                name: 'Security Assistance', 
+                description: 'Law enforcement response', 
+                color: '#ff9500'
+            },
+            'SUPPORT': { 
+                name: 'Emergency Support', 
+                description: 'Local authorities connection',
+                color: '#2196F3'
+            }
+        }
+    },
 
+    // App state
+    state: {
+        map: null,
+        userMarker: null,
+        userLocation: null,
+        emergencies: [],
+        watchId: null,
+        locationAccessGranted: false,
+        isOnline: true
+    },
+
+    // Initialize the application
     init() {
         this.initMap();
         this.setupEventListeners();
+        this.startMetricsUpdates();
         
-        // Try to get location automatically when page loads
+        // Auto-attempt location access
         setTimeout(() => {
             this.getLocation();
         }, 1000);
         
-        this.startMetricsUpdates();
+        console.log('SafeTravel Guardian initialized');
     },
 
+    // Initialize the map
     initMap() {
         const defaultLocation = { lat: 11.166737, lng: 76.966926 };
         
-        this.map = L.map('map').setView([defaultLocation.lat, defaultLocation.lng], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
+        this.state.map = L.map('map').setView([defaultLocation.lat, defaultLocation.lng], 15);
         
-        this.userMarker = L.marker([defaultLocation.lat, defaultLocation.lng])
-            .addTo(this.map)
-            .bindPopup('Default location - Please enable location access')
+        // Use a more professional map style
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(this.state.map);
+        
+        this.state.userMarker = L.marker([defaultLocation.lat, defaultLocation.lng])
+            .addTo(this.state.map)
+            .bindPopup('Waiting for location access')
             .openPopup();
             
-        this.updateLocationStatus('warning', 'Location access required. Click "Update My Location" to enable.');
+        this.updateLocationStatus('Location access required for emergency services');
     },
 
+    // Get user location
     getLocation() {
-        this.updateLocationStatus('updating', 'Requesting location access...');
-        document.getElementById('permissionHelp').style.display = 'none';
+        this.updateLocationStatus('Requesting location access...');
         
         if (!navigator.geolocation) {
-            this.updateLocationStatus('error', 'Geolocation is not supported by this browser.');
-            this.showPermissionHelp();
+            this.updateLocationStatus('Geolocation not supported by this browser');
             return;
         }
 
@@ -53,78 +89,74 @@ const safetyApp = {
         );
     },
 
+    // Handle successful location acquisition
     handleLocationSuccess(position) {
-        this.locationAccessGranted = true;
-        this.userLocation = { 
+        this.state.locationAccessGranted = true;
+        this.state.userLocation = { 
             lat: position.coords.latitude, 
             lng: position.coords.longitude 
         };
         
-        // Update map
-        this.map.setView([this.userLocation.lat, this.userLocation.lng], 15);
-        this.userMarker.setLatLng([this.userLocation.lat, this.userLocation.lng])
-                     .setPopupContent('Your current location')
+        // Update map view
+        this.state.map.setView([this.state.userLocation.lat, this.state.userLocation.lng], 15);
+        this.state.userMarker.setLatLng([this.state.userLocation.lat, this.state.userLocation.lng])
+                     .setPopupContent('Your current location - Monitoring active')
                      .openPopup();
         
-        // Update display
-        const accuracy = position.coords.accuracy ? ` (Accuracy: ${position.coords.accuracy.toFixed(1)}m)` : '';
-        this.updateLocationStatus('success', 📍 Location access granted${accuracy});
+        // Update UI
+        const accuracy = position.coords.accuracy ? `±${position.coords.accuracy.toFixed(1)}m` : 'High accuracy';
+        this.updateLocationStatus('Location tracking active');
+        
         document.getElementById('locationCoordinates').textContent = 
-            Latitude: ${this.userLocation.lat.toFixed(6)}, Longitude: ${this.userLocation.lng.toFixed(6)};
+            `Lat: ${this.state.userLocation.lat.toFixed(6)} | Lng: ${this.state.userLocation.lng.toFixed(6)}`;
         
-        if (position.coords.accuracy) {
-            document.getElementById('locationAccuracy').textContent = 
-                Accuracy: ±${position.coords.accuracy.toFixed(1)} meters;
-        }
+        document.getElementById('locationAccuracy').textContent = `Accuracy: ${accuracy}`;
         
-        // Hide SOS warning
-        document.getElementById('sosWarning').style.display = 'none';
-        
-        // Start watching position
+        // Start continuous tracking
         this.startWatchingLocation();
     },
 
+    // Handle location errors
     handleLocationError(error) {
-        this.locationAccessGranted = false;
-        let errorMessage = 'Unknown error occurred';
+        this.state.locationAccessGranted = false;
+        let errorMessage = 'Unable to access location';
         
         switch(error.code) {
             case error.PERMISSION_DENIED:
-                errorMessage = 'Location access denied. Please enable location permissions.';
-                this.showPermissionHelp();
+                errorMessage = 'Location access denied. Enable permissions for emergency features.';
                 break;
             case error.POSITION_UNAVAILABLE:
-                errorMessage = 'Location information unavailable. Please check your connection.';
+                errorMessage = 'Location unavailable. Check your connection.';
                 break;
             case error.TIMEOUT:
-                errorMessage = 'Location request timed out. Please try again.';
+                errorMessage = 'Location request timeout. Please try again.';
                 break;
         }
         
-        this.updateLocationStatus('error', errorMessage);
-        document.getElementById('sosWarning').style.display = 'block';
+        this.updateLocationStatus(errorMessage);
     },
 
+    // Start watching location changes
     startWatchingLocation() {
-        if (this.watchId !== null) {
-            navigator.geolocation.clearWatch(this.watchId);
+        if (this.state.watchId !== null) {
+            navigator.geolocation.clearWatch(this.state.watchId);
         }
         
-        this.watchId = navigator.geolocation.watchPosition(
+        this.state.watchId = navigator.geolocation.watchPosition(
             (position) => {
-                this.userLocation = { 
+                this.state.userLocation = { 
                     lat: position.coords.latitude, 
                     lng: position.coords.longitude 
                 };
-                this.userMarker.setLatLng([this.userLocation.lat, this.userLocation.lng]);
+                this.state.userMarker.setLatLng([this.state.userLocation.lat, this.state.userLocation.lng]);
                 
                 if (position.coords.accuracy) {
                     document.getElementById('locationAccuracy').textContent = 
-                        Accuracy: ±${position.coords.accuracy.toFixed(1)} meters;
+                        `Accuracy: ±${position.coords.accuracy.toFixed(1)}m`;
                 }
             },
             (error) => {
-                console.warn('Location watch error:', error);
+                console.warn('Location tracking error:', error);
             },
             {
                 enableHighAccuracy: true,
@@ -134,139 +166,163 @@ const safetyApp = {
         );
     },
 
-    sendSOS(type) {
-        if (!this.locationAccessGranted || !this.userLocation) {
+    // Send emergency alert
+    sendEmergency(type) {
+        if (!this.state.locationAccessGranted || !this.state.userLocation) {
             this.showModal(
                 'Location Access Required',
-                'Please enable location access first! Click "Update My Location" and allow location permissions.'
+                'Please enable location tracking to send emergency alerts. This ensures responders can reach you quickly.'
             );
             this.getLocation();
             return;
         }
 
-        const emergencyTypes = {
-            'VOICE_EMERGENCY': 'Voice Emergency', 
-            'ONLINE_EMERGENCY': 'Online Emergency', 
-            'MEDICAL_ASSISTANCE': 'Medical Assistance', 
-            'POLICE_ASSISTANCE': 'Police Assistance'
-        };
-
+        const emergencyConfig = this.config.emergencyTypes[type];
         const emergency = {
-            id: Date.now(), 
-            type: emergencyTypes[type],
-            location: ${this.userLocation.lat.toFixed(6)}, ${this.userLocation.lng.toFixed(6)},
-            timestamp: new Date().toLocaleString(), 
-            status: 'PENDING'
+            id: Date.now(),
+            type: type,
+            name: emergencyConfig.name,
+            location: `${this.state.userLocation.lat.toFixed(6)}, ${this.state.userLocation.lng.toFixed(6)}`,
+            timestamp: new Date().toLocaleString(),
+            status: 'PENDING',
+            responder: null
         };
 
-        this.emergencies.unshift(emergency);
+        this.state.emergencies.unshift(emergency);
         this.updateEmergencyHistory();
 
         // Show confirmation modal
         this.showModal(
-            'EMERGENCY ALERT SENT!',
-            Type: ${emergency.type}<br>Location: ${emergency.location}<br><br>Help is on the way!
+            'EMERGENCY ALERT SENT',
+            `Emergency Type: <strong>${emergencyConfig.name}</strong><br>
+             Location: <code>${emergency.location}</code><br>
+             Time: ${emergency.timestamp}<br><br>
+             <span style="color: var(--success);">Emergency services have been notified and help is on the way.</span>`
         );
 
-        document.getElementById('connectionStatus').innerHTML = '📡 Sending to emergency server...';
-        
-        // Simulate server communication
+        // Update response status
+        this.updateResponseStatus('Dispatching emergency response...');
+
+        // Simulate emergency response
         this.simulateEmergencyResponse(emergency);
     },
 
+    // Simulate emergency response process
     simulateEmergencyResponse(emergency) {
         setTimeout(() => {
-            document.getElementById('connectionStatus').innerHTML = '✅ Emergency received by control room!';
+            this.updateResponseStatus('Emergency received by control room');
             
             setTimeout(() => {
                 emergency.status = 'ASSIGNED';
-                emergency.responder = 'Responder_Unit_01';
+                emergency.responder = `Unit_${Math.floor(1000 + Math.random() * 9000)}`;
                 this.updateEmergencyHistory();
+                this.updateResponseStatus(`Responder assigned: ${emergency.responder}`);
                 
-                // Update risk level
-                document.querySelector('.risk-level').textContent = 'HIGH';
-                document.querySelector('.risk-level').style.color = 'red';
+                // Update risk level if critical
+                if (emergency.type === 'CRITICAL') {
+                    document.querySelector('.risk-level').textContent = 'HIGH';
+                    document.querySelector('.risk-level').style.color = 'var(--danger)';
+                }
             }, 2000);
         }, 1000);
     },
 
+    // Update emergency history display
     updateEmergencyHistory() {
         const historyContainer = document.getElementById('emergencyHistory');
-        if (this.emergencies.length === 0) {
-            historyContainer.innerHTML = '<div class="emergency-item">No recent emergencies.</div>';
+        const countElement = document.getElementById('emergencyCount');
+        
+        if (this.state.emergencies.length === 0) {
+            historyContainer.innerHTML = `
+                <div class="empty-state">
+                    <p>No emergency alerts</p>
+                    <small>Your safety status is actively monitored</small>
+                </div>
+            `;
+            countElement.textContent = 'No recent alerts';
             return;
         }
         
-        historyContainer.innerHTML = this.emergencies.map(emergency => `
+        countElement.textContent = `${this.state.emergencies.length} recent alert(s)`;
+        
+        historyContainer.innerHTML = this.state.emergencies.map(emergency => `
             <div class="emergency-item">
-                <strong>${emergency.type}</strong><br>
+                <strong>${emergency.name}</strong><br>
                 <small>Location: ${emergency.location} | Time: ${emergency.timestamp}</small><br>
-                <small>Status: <span style="color: ${emergency.status === 'PENDING' ? 'orange' : 'green'}">${emergency.status}</span></small>
-                ${emergency.responder ? <br><small>Responder: ${emergency.responder}</small> : ''}
+                <small>Status: <span style="color: ${emergency.status === 'PENDING' ? 'var(--warning)' : 'var(--success)'}">
+                    ${emergency.status}${emergency.responder ? ` • ${emergency.responder}` : ''}
+                </span></small>
             </div>
         `).join('');
     },
 
+    // Update response status display
+    updateResponseStatus(message) {
+        document.getElementById('responseStatus').textContent = message;
+    },
+
+    // Update location status display
+    updateLocationStatus(message) {
+        document.getElementById('locationText').textContent = message;
+    },
+
+    // Show modal dialog
     showModal(title, content) {
-        document.getElementById('modalContent').innerHTML = `
-            <h3>${title}</h3>
-            <p>${content}</p>
-        `;
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalContent').innerHTML = content;
         document.getElementById('emergencyModal').style.display = 'block';
     },
 
+    // Close modal dialog
     closeModal() {
         document.getElementById('emergencyModal').style.display = 'none';
     },
 
-    updateLocationStatus(status, message) {
-        const statusElement = document.getElementById('locationStatus');
-        const textElement = document.getElementById('locationText');
-        
-        statusElement.className = 'location-status';
-        statusElement.classList.add(location-${status});
-        textElement.textContent = message;
-    },
-
-    showPermissionHelp() {
-        document.getElementById('permissionHelp').style.display = 'block';
-    },
-
-    testLocation() {
-        this.getLocation();
-    },
-
+    // Setup event listeners
     setupEventListeners() {
-        // Close modal when clicking X
-        document.querySelector('.close').addEventListener('click', () => this.closeModal());
-        
+        // Close modal with escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') this.closeModal();
+        });
+
         // Close modal when clicking outside
-        window.addEventListener('click', (event) => {
-            const modal = document.getElementById('emergencyModal');
-            if (event.target === modal) {
-                this.closeModal();
-            }
+        document.getElementById('emergencyModal').addEventListener('click', (e) => {
+            if (e.target.id === 'emergencyModal') this.closeModal();
         });
 
         // Refresh location when page becomes visible
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && this.locationAccessGranted) {
+            if (!document.hidden && this.state.locationAccessGranted) {
                 this.getLocation();
             }
         });
+
+        // Online/offline detection
+        window.addEventListener('online', () => {
+            this.state.isOnline = true;
+            this.updateResponseStatus('System online');
+        });
+
+        window.addEventListener('offline', () => {
+            this.state.isOnline = false;
+            this.updateResponseStatus('Offline - Limited functionality');
+        });
     },
 
+    // Start metrics updates
     startMetricsUpdates() {
+        // Update response time periodically
         setInterval(() => {
             document.getElementById('responseTime').textContent = 
-                (1.5 + Math.random() * 2).toFixed(1) + 's';
+                (1.5 + Math.random() * 2).toFixed(1) + 's average';
             document.getElementById('activeResponders').textContent = 
-                Math.floor(10 + Math.random() * 5);
+                Math.floor(10 + Math.random() * 5) + ' online';
         }, 5000);
     }
 };
 
-// Initialize the app when DOM is loaded
+// Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     safetyApp.init();
 });
+
