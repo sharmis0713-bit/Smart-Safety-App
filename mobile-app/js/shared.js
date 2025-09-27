@@ -85,7 +85,83 @@ const sharedUtils = {
         }
     }
 };
+// js/shared.js - Real-time emergency sharing
+class EmergencyBroadcaster {
+    constructor() {
+        this.emergencies = JSON.parse(localStorage.getItem('activeEmergencies') || '[]');
+        this.listeners = [];
+        this.setupStorageListener();
+    }
 
+    // Broadcast new emergency to all authority dashboards
+    broadcastEmergency(emergencyData) {
+        const emergency = {
+            id: Date.now(),
+            touristId: emergencyData.touristId || 'anonymous',
+            type: emergencyData.type,
+            location: emergencyData.location,
+            coordinates: emergencyData.coordinates,
+            timestamp: new Date().toISOString(),
+            status: 'ACTIVE',
+            assignedResponder: null,
+            updates: []
+        };
+
+        this.emergencies.unshift(emergency);
+        this.saveToStorage();
+        this.notifyListeners(emergency);
+        
+        return emergency.id;
+    }
+
+    // Update emergency status
+    updateEmergency(emergencyId, updates) {
+        const emergency = this.emergencies.find(e => e.id === emergencyId);
+        if (emergency) {
+            Object.assign(emergency, updates);
+            emergency.updates.push({
+                timestamp: new Date().toISOString(),
+                message: updates.status || 'Status updated'
+            });
+            this.saveToStorage();
+            this.notifyListeners(emergency, 'update');
+        }
+    }
+
+    // Get all active emergencies
+    getActiveEmergencies() {
+        return this.emergencies.filter(e => e.status === 'ACTIVE');
+    }
+
+    // Authority dashboard listens for new emergencies
+    addEmergencyListener(callback) {
+        this.listeners.push(callback);
+    }
+
+    // Notify all listening authority dashboards
+    notifyListeners(emergency, action = 'new') {
+        this.listeners.forEach(callback => {
+            callback(emergency, action);
+        });
+    }
+
+    // Save to localStorage (simulates database)
+    saveToStorage() {
+        localStorage.setItem('activeEmergencies', JSON.stringify(this.emergencies));
+        // Trigger storage event for cross-tab communication
+        window.dispatchEvent(new Event('storage'));
+    }
+
+    // Listen for storage changes (multiple authority tabs)
+    setupStorageListener() {
+        window.addEventListener('storage', () => {
+            this.emergencies = JSON.parse(localStorage.getItem('activeEmergencies') || '[]');
+        });
+    }
+}
+
+// Global instance
+const emergencyBroadcaster = new EmergencyBroadcaster();
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = sharedUtils;
