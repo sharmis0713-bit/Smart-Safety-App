@@ -9,17 +9,13 @@ const authorityApp = {
         heatmapEnabled: false
     },
 
-    // Initialize authority dashboard
     init() {
-        this.checkAuthentication();
-        this.initMap();
-        this.loadDemoData();
-        this.setupEventListeners();
-        this.startLiveUpdates();
-        
-        console.log('Authority dashboard initialized');
-    },
-
+    this.checkAuthentication();
+    this.initMap();
+    this.loadEmergencies();  // ← NEW METHOD
+    this.setupEventListeners();
+    this.startRealTimeUpdates();  // ← RENAME THIS
+}
     // Check if user is authenticated as authority
     checkAuthentication() {
         const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
@@ -43,47 +39,57 @@ const authorityApp = {
             attribution: '© OpenStreetMap contributors'
         }).addTo(this.state.map);
     },
+// NEW - Real-time emergency loading
+loadEmergencies() {
+    // Get real emergencies from shared system
+    this.state.emergencies = emergencyBroadcaster.getActiveEmergencies();
+    this.updateDashboard();
+    this.plotEmergenciesOnMap();
+    
+    // Listen for new emergencies in real-time
+    emergencyBroadcaster.addEmergencyListener((emergency, action) => {
+        if (action === 'new') {
+            this.handleNewEmergency(emergency);
+        } else if (action === 'update') {
+            this.updateEmergencyMarker(emergency);
+        }
+    });
+},
 
-    // Load demo emergency data
-    loadDemoData() {
-        // Demo emergencies
-        this.state.emergencies = [
-            {
-                id: 1,
-                type: 'critical',
-                name: 'Critical Emergency',
-                location: { lat: 11.166737, lng: 76.966926 },
-                address: 'Central City Area',
-                timestamp: new Date().toLocaleString(),
-                status: 'pending',
-                touristInfo: 'John D. (US Tourist)',
-                description: 'Immediate assistance required'
-            },
-            {
-                id: 2,
-                type: 'medical',
-                name: 'Medical Assistance',
-                location: { lat: 11.168888, lng: 76.968888 },
-                address: 'North District',
-                timestamp: new Date(Date.now() - 15 * 60000).toLocaleString(),
-                status: 'assigned',
-                touristInfo: 'Sarah M. (UK Tourist)',
-                description: 'Medical emergency - ambulance required',
-                responder: 'Unit Alpha-01'
-            }
-        ];
+// Handle new emergency from tourist
+handleNewEmergency(emergency) {
+    this.state.emergencies.unshift(emergency);
+    this.addEmergencyToMap(emergency);
+    this.updateEmergencyList();
+    this.updateDashboard();
+    
+    // Show notification
+    this.showEmergencyNotification(emergency);
+},
 
-        // Demo responders
-        this.state.responders = [
-            { id: 1, name: 'Unit Alpha-01', status: 'available', location: { lat: 11.165000, lng: 76.965000 } },
-            { id: 2, name: 'Unit Bravo-02', status: 'busy', location: { lat: 11.167000, lng: 76.967000 } },
-            { id: 3, name: 'Unit Charlie-03', status: 'available', location: { lat: 11.169000, lng: 76.969000 } }
-        ];
+// Add emergency to map with real coordinates
+addEmergencyToMap(emergency) {
+    const [lat, lng] = emergency.coordinates.split(',').map(Number);
+    
+    const marker = L.marker([lat, lng], {
+        icon: this.createEmergencyIcon(emergency.type)
+    }).addTo(this.state.map);
+    
+    marker.bindPopup(this.createEmergencyPopup(emergency));
+    this.state.emergencyMarkers = this.state.emergencyMarkers || {};
+    this.state.emergencyMarkers[emergency.id] = marker;
+},
 
-        this.updateDashboard();
-        this.plotEmergenciesOnMap();
-    },
-
+// Update emergency marker when tourist moves
+updateEmergencyMarker(emergency) {
+    const marker = this.state.emergencyMarkers[emergency.id];
+    if (marker) {
+        const [lat, lng] = emergency.coordinates.split(',').map(Number);
+        marker.setLatLng([lat, lng]);
+        marker.setPopupContent(this.createEmergencyPopup(emergency));
+    }
+},
+   
     // Plot emergencies on the map
     plotEmergenciesOnMap() {
         // Clear existing markers
@@ -279,22 +285,95 @@ const authorityApp = {
         });
     },
 
-    // Start live updates simulation
-    startLiveUpdates() {
-        // Simulate live emergency updates
-        setInterval(() => {
-            this.simulateLiveData();
-        }, 30000); // Update every 30 seconds
-    },
-
+    startRealTimeUpdates() {
+    // Real-time updates come from emergencyBroadcaster listeners
+    // No need for simulation interval
+    console.log('Real-time emergency monitoring active');
+    
+    // Request notification permission
+    if (Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
     // Simulate live data updates
     simulateLiveData() {
         // This would be replaced with real API calls
         console.log('Checking for new emergencies...');
     }
 };
+// Add these methods to your existing authorityApp object:
 
+// Create detailed popup for real emergencies
+createEmergencyPopup(emergency) {
+    return `
+        <div class="emergency-popup">
+            <h4>🚨 ${emergency.type.toUpperCase()} EMERGENCY</h4>
+            <p><strong>Tourist ID:</strong> ${emergency.touristId}</p>
+            <p><strong>Location:</strong> ${emergency.location}</p>
+            <p><strong>Time:</strong> ${new Date(emergency.timestamp).toLocaleString()}</p>
+            <p><strong>Status:</strong> <span style="color: red;">${emergency.status}</span></p>
+            <button onclick="authorityApp.viewEmergencyDetails(${emergency.id})" 
+                    class="primary-btn small">View Details</button>
+            <button onclick="authorityApp.assignToNearestResponder(${emergency.id})" 
+                    class="secondary-btn small">Assign Responder</button>
+        </div>
+    `;
+},
+
+// Show browser notification for new emergencies
+showEmergencyNotification(emergency) {
+    if (Notification.permission === 'granted') {
+        new Notification(`🚨 New ${emergency.type} Emergency`, {
+            body: `Location: ${emergency.location}\nClick to view details`
+        });
+    } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission();
+    }
+},
+
+// Assign nearest available responder
+assignToNearestResponder(emergencyId) {
+    const emergency = this.state.emergencies.find(e => e.id === emergencyId);
+    if (!emergency) return;
+    
+    const availableResponders = this.getAvailableResponders();
+    if (availableResponders.length === 0) {
+        this.showNotification('No available responders at the moment');
+        return;
+    }
+    
+    // Assign first available responder (in real app, calculate nearest)
+    const assignedResponder = availableResponders[0];
+    emergency.assignedResponder = assignedResponder.name;
+    emergency.status = 'ASSIGNED';
+    
+    // Update in shared system so tourist can see
+    emergencyBroadcaster.updateEmergency(emergencyId, {
+        assignedResponder: assignedResponder.name,
+        status: 'ASSIGNED'
+    });
+    
+    this.updateEmergencyList();
+    this.showNotification(`🚑 ${assignedResponder.name} assigned - ETA: 5-7 minutes`);
+},
+
+// Get available responders (replace with real data)
+getAvailableResponders() {
+    return [
+        { name: 'Unit Alpha-01', location: 'Near City Center', available: true },
+        { name: 'Unit Bravo-02', location: 'East District', available: true },
+        { name: 'Medical Team-04', location: 'Central Hospital', available: true }
+    ].filter(r => r.available);
+}
 // Initialize the authority dashboard
 document.addEventListener('DOMContentLoaded', () => {
     authorityApp.init();
 });
+state: {
+    map: null,
+    emergencies: [],
+    responders: [],
+    selectedEmergency: null,
+    heatmapEnabled: false,
+    emergencyMarkers: {}  // ← ADD THIS
+},
