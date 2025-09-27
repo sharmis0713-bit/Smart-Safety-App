@@ -44,7 +44,7 @@ body {
     padding: var(--spacing-sm);
 }
 
-/* Header Styles */
+/* Header Styles with Logout */
 .main-header {
     background: var(--primary-blue);
     color: var(--white);
@@ -68,6 +68,40 @@ body {
     opacity: 0.9;
     font-weight: 400;
 }
+
+/* LOGOUT STYLES - ADDED */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.user-welcome {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.logout-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+/* END OF LOGOUT STYLES */
 
 .status-indicator {
     display: flex;
@@ -390,6 +424,10 @@ body {
     
     .app-title {
         font-size: 2rem;
+    }
+    
+    .header-actions {
+        margin-top: var(--spacing-sm);
     }
     
     .metrics-grid {
