@@ -1,24 +1,26 @@
-// Authority Dashboard Application
-const authorityApp = {
-    // Application state
-    state: {
-        map: null,
-        emergencies: [],
-        responders: [],
-        selectedEmergency: null,
-        heatmapEnabled: false
-    },
+// authority-app.js
+class AuthorityApp {
+    constructor() {
+        this.map = null;
+        this.emergencies = [];
+        this.responders = [];
+        this.heatmapEnabled = false;
+        this.emergencyMarkers = new Map(); // Use Map for better performance
+        this.selectedEmergency = null;
+        
+        this.init();
+    }
 
     init() {
-    this.checkAuthentication();
-    this.initMap();
-    this.loadEmergencies();  // ← NEW METHOD
-    this.setupEventListeners();
-    this.startRealTimeUpdates(); // ← RENAME THIS
+        this.checkAuthentication();
+        this.initializeMap();
+        this.loadResponders();
+        this.setupEventListeners();
+        this.startRealTimeUpdates();
+        
+        console.log('Authority Dashboard - Live SOS Feed Active');
+    }
 
-    console.log('Authority Dashboard - Live SOS Feed Active');
-}
-    // Check if user is authenticated as authority
     checkAuthentication() {
         const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
         
@@ -27,439 +29,444 @@ const authorityApp = {
             return;
         }
         
-        // Update UI with authority info
-        document.getElementById('authorityName').textContent = currentUser.user.name || 'Response Unit';
-    },
+        document.getElementById('authorityName').textContent = currentUser.user?.name || 'Response Unit';
+    }
 
-    // Initialize the map
-    initMap() {
+    initializeMap() {
+        // Use default location or current user's location
         const defaultLocation = { lat: 11.166737, lng: 76.966926 };
         
-        this.state.map = L.map('authorityMap').setView([defaultLocation.lat, defaultLocation.lng], 12);
+        this.map = L.map('authorityMap').setView([defaultLocation.lat, defaultLocation.lng], 12);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(this.state.map);
-    },
-// NEW - Real-time emergency loading
-loadEmergencies() {
-    // Get real emergencies from shared system
-    this.state.emergencies = emergencyBroadcaster.getActiveEmergencies();
-    this.updateDashboard();
-    this.plotEmergenciesOnMap();
-    
-    // Listen for new emergencies in real-time
-    emergencyBroadcaster.addEmergencyListener((emergency, action) => {
-        if (action === 'new') {
-            this.handleNewEmergency(emergency);
-        } else if (action === 'update') {
-            this.updateEmergencyMarker(emergency);
-        }
-    });
-},
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(this.map);
 
-// Handle new emergency from tourist
-handleNewEmergency(emergency) {
-    this.state.emergencies.unshift(emergency);
-    this.addEmergencyToMap(emergency);
-    this.updateEmergencyList();
-    this.updateDashboard();
-    
-    // Show notification
-    this.showEmergencyNotification(emergency);
-},
-
-// Add emergency to map with real coordinates
-addEmergencyToMap(emergency) {
-    const [lat, lng] = emergency.coordinates.split(',').map(Number);
-    
-    const marker = L.marker([lat, lng], {
-        icon: this.createEmergencyIcon(emergency.type)
-    }).addTo(this.state.map);
-    
-    marker.bindPopup(this.createEmergencyPopup(emergency));
-    this.state.emergencyMarkers = this.state.emergencyMarkers || {};
-    this.state.emergencyMarkers[emergency.id] = marker;
-},
-
-// Update emergency marker when tourist moves
-updateEmergencyMarker(emergency) {
-    const marker = this.state.emergencyMarkers[emergency.id];
-    if (marker) {
-        const [lat, lng] = emergency.coordinates.split(',').map(Number);
-        marker.setLatLng([lat, lng]);
-        marker.setPopupContent(this.createEmergencyPopup(emergency));
+        console.log('OpenStreetMap initialized successfully');
     }
-},
-plotEmergenciesOnMap() {
-    // Clear existing markers
-    if (this.state.emergencyMarkers) {
-        Object.values(this.state.emergencyMarkers).forEach(marker => {
-            this.state.map.removeLayer(marker);
-        });
-    }
-    this.state.emergencyMarkers = {};
 
-    // Add emergency markers
-    this.state.emergencies.forEach(emergency => {
-        this.addEmergencyToMap(emergency);
-    });
-},
-   
+    loadEmergencies() {
+        // Get real emergencies from shared system if available
+        if (typeof emergencyBroadcaster !== 'undefined') {
+            this.emergencies = emergencyBroadcaster.getActiveEmergencies() || [];
             
-            // Add custom icon based on emergency type
-            marker.setIcon(this.createEmergencyIcon(emergency.type));
-        });
-    },
+            // Listen for new emergencies in real-time
+            emergencyBroadcaster.addEmergencyListener((emergency, action) => {
+                if (action === 'new') {
+                    this.handleNewEmergency(emergency);
+                } else if (action === 'update') {
+                    this.updateEmergencyMarker(emergency);
+                }
+            });
+        } else {
+            // Fallback to sample data
+            this.emergencies = [
+                {
+                    id: 1,
+                    type: "critical",
+                    title: "Critical Emergency",
+                    location: "Downtown District",
+                    coordinates: [11.166737, 76.966926],
+                    timestamp: new Date().toISOString(),
+                    time: new Date().toLocaleTimeString(),
+                    status: "active",
+                    tourist: "John Doe",
+                    phone: "+1234567890",
+                    touristId: "T001"
+                },
+                {
+                    id: 2,
+                    type: "medical",
+                    title: "Medical Assistance Needed",
+                    location: "Central Park Area",
+                    coordinates: [11.176737, 76.976926],
+                    timestamp: new Date().toISOString(),
+                    time: new Date().toLocaleTimeString(),
+                    status: "active",
+                    tourist: "Jane Smith",
+                    phone: "+1234567891",
+                    touristId: "T002"
+                }
+            ];
+        }
 
-    // Create custom icon for emergencies
-    createEmergencyIcon(type) {
-        const color = this.getEmergencyColor(type);
-        return L.divIcon({
-            className: 'emergency-marker',
-            html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>`,
-            iconSize: [20, 20],
-            iconAnchor: [10, 10]
-        });
-    },
-
-    // Get color for emergency type
-    getEmergencyColor(type) {
-        const colors = {
-            'critical': '#dc3545',
-            'medical': '#28a745', 
-            'security': '#ff9500',
-            'support': '#2196F3'
-        };
-        return colors[type] || '#666';
-    },
-
-    // Update dashboard statistics
-    updateDashboard() {
-        const activeEmergencies = this.state.emergencies.filter(e => e.status !== 'resolved').length;
-        const availableResponders = this.state.responders.filter(r => r.status === 'available').length;
-        
-        document.getElementById('activeEmergencies').textContent = activeEmergencies;
-        document.getElementById('respondersOnline').textContent = this.state.responders.length;
-        document.getElementById('availableResponders').textContent = `${availableResponders} available`;
-        
-        // Update emergency list
-        this.updateEmergencyList();
-    },
-
-    // UPDATE this method:
-updateEmergencyList() {
-    const container = document.getElementById('emergenciesContainer');
-    const emergencies = this.state.emergencies;
-    
-    if (emergencies.length === 0) {
-        container.innerHTML = '<div class="empty-state"><p>No active emergencies</p><small>Monitoring for SOS alerts</small></div>';
-        return;
+        this.updateEmergencyDisplay();
+        this.plotEmergenciesOnMap();
     }
-    
-    container.innerHTML = emergencies.map(emergency => `
-        <div class="emergency-item ${emergency.type.toLowerCase()}" onclick="authorityApp.viewEmergencyDetails('${emergency.id}')">
-            <div class="emergency-header">
-                <span class="emergency-type">${emergency.type} EMERGENCY</span>
-                <span class="emergency-time">${new Date(emergency.timestamp).toLocaleTimeString()}</span>
-            </div>
-            <div class="emergency-location">${emergency.location}</div>
-            <div class="emergency-info">
-                <span class="emergency-status status-${emergency.status.toLowerCase()}">${emergency.status}</span>
-                ${emergency.assignedTo ? `<span class="emergency-responder">• ${emergency.assignedTo}</span>` : ''}
-            </div>
-        </div>
-    `).join('');
-},
 
-    // View emergency details
+    loadResponders() {
+        this.responders = [
+            { id: 1, name: "Unit Alpha-01", status: "online", location: "Station A" },
+            { id: 2, name: "Unit Bravo-02", status: "busy", location: "On Emergency" },
+            { id: 3, name: "Unit Charlie-03", status: "online", location: "Station B" },
+            { id: 4, name: "Medical Team-04", status: "online", location: "Central Hospital" }
+        ];
+
+        this.updateResponderDisplay();
+    }
+
+    plotEmergenciesOnMap() {
+        // Clear existing markers
+        this.emergencyMarkers.forEach(marker => this.map.removeLayer(marker));
+        this.emergencyMarkers.clear();
+
+        this.emergencies.forEach(emergency => {
+            this.addEmergencyToMap(emergency);
+        });
+
+        // Adjust map view if we have emergencies
+        if (this.emergencies.length > 0) {
+            const markersArray = Array.from(this.emergencyMarkers.values());
+            const group = L.featureGroup(markersArray);
+            this.map.fitBounds(group.getBounds().pad(0.1));
+        }
+    }
+
+    addEmergencyToMap(emergency) {
+        let coordinates;
+        
+        if (Array.isArray(emergency.coordinates)) {
+            coordinates = emergency.coordinates;
+        } else if (typeof emergency.coordinates === 'string') {
+            coordinates = emergency.coordinates.split(',').map(Number);
+        } else {
+            console.error('Invalid coordinates format:', emergency.coordinates);
+            return;
+        }
+
+        const markerColor = this.getMarkerColor(emergency.type);
+        const marker = L.marker(coordinates, {
+            icon: L.divIcon({
+                className: `emergency-marker ${emergency.type}`,
+                html: `<div style="background-color: ${markerColor}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3);"></div>`,
+                iconSize: [20, 20]
+            })
+        }).addTo(this.map);
+
+        marker.bindPopup(this.createEmergencyPopup(emergency));
+
+        marker.on('click', () => {
+            this.viewEmergencyDetails(emergency.id);
+        });
+
+        this.emergencyMarkers.set(emergency.id, marker);
+    }
+
+    updateEmergencyMarker(emergency) {
+        const marker = this.emergencyMarkers.get(emergency.id);
+        if (marker) {
+            let coordinates;
+            
+            if (Array.isArray(emergency.coordinates)) {
+                coordinates = emergency.coordinates;
+            } else if (typeof emergency.coordinates === 'string') {
+                coordinates = emergency.coordinates.split(',').map(Number);
+            } else {
+                return;
+            }
+            
+            marker.setLatLng(coordinates);
+            marker.setPopupContent(this.createEmergencyPopup(emergency));
+            
+            // Update the emergency in our array
+            const index = this.emergencies.findIndex(e => e.id === emergency.id);
+            if (index !== -1) {
+                this.emergencies[index] = { ...this.emergencies[index], ...emergency };
+                this.updateEmergencyDisplay();
+            }
+        }
+    }
+
+    getMarkerColor(type) {
+        const colors = {
+            critical: '#e74c3c',
+            medical: '#3498db',
+            security: '#f39c12',
+            support: '#2ecc71'
+        };
+        return colors[type] || '#95a5a6';
+    }
+
+    createEmergencyPopup(emergency) {
+        return `
+            <div class="emergency-popup">
+                <h4>${this.getEmergencyIcon(emergency.type)} ${emergency.type.toUpperCase()} EMERGENCY</h4>
+                <p><strong>Tourist:</strong> ${emergency.tourist || 'Unknown'}</p>
+                <p><strong>Location:</strong> ${emergency.location}</p>
+                <p><strong>Time:</strong> ${new Date(emergency.timestamp || emergency.time).toLocaleString()}</p>
+                <p><strong>Status:</strong> <span style="color: ${emergency.status === 'active' ? 'red' : 'green'};">${emergency.status}</span></p>
+                <div style="margin-top: 10px;">
+                    <button onclick="authorityApp.viewEmergencyDetails(${emergency.id})" 
+                            class="primary-btn small" style="margin: 2px;">View Details</button>
+                    <button onclick="authorityApp.assignToNearestResponder(${emergency.id})" 
+                            class="secondary-btn small" style="margin: 2px;">Assign Responder</button>
+                </div>
+            </div>
+        `;
+    }
+
+    getEmergencyIcon(type) {
+        const icons = {
+            critical: '🚨',
+            medical: '🏥',
+            security: '🛡️',
+            support: '🔧'
+        };
+        return icons[type] || '⚠️';
+    }
+
+    updateEmergencyDisplay() {
+        const container = document.getElementById('emergenciesContainer');
+        const activeCount = this.emergencies.filter(e => e.status === 'active').length;
+
+        // Update stats
+        document.getElementById('activeEmergencies').textContent = activeCount;
+        document.getElementById('respondersOnline').textContent = this.responders.length;
+        document.getElementById('avgResponseTime').textContent = '4.2s';
+        document.getElementById('resolvedToday').textContent = this.emergencies.filter(e => e.status === 'resolved').length;
+
+        if (this.emergencies.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>No active emergencies</p>
+                    <small>All systems monitoring normally</small>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.emergencies.map(emergency => `
+            <div class="emergency-item ${emergency.type}" onclick="authorityApp.viewEmergencyDetails(${emergency.id})">
+                <div class="emergency-icon">${this.getEmergencyIcon(emergency.type)}</div>
+                <div class="emergency-info">
+                    <h4>${emergency.title || emergency.type + ' Emergency'}</h4>
+                    <p>${emergency.location}</p>
+                    <small>Reported: ${new Date(emergency.timestamp || emergency.time).toLocaleTimeString()}</small>
+                </div>
+                <div class="emergency-status ${emergency.status}">
+                    ${emergency.status.toUpperCase()}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    updateResponderDisplay() {
+        const availableCount = this.responders.filter(r => r.status === 'online').length;
+        document.getElementById('availableResponders').textContent = `${availableCount} available`;
+
+        const container = document.getElementById('responderList');
+        container.innerHTML = this.responders.map(responder => `
+            <div class="responder-item ${responder.status}">
+                <div class="responder-info">
+                    <span class="responder-name">${responder.name}</span>
+                    <span class="responder-status">${responder.status === 'online' ? 'Available' : 'Busy'}</span>
+                </div>
+                <div class="responder-actions">
+                    <button class="primary-btn small" ${responder.status !== 'online' ? 'disabled' : ''}
+                            onclick="authorityApp.assignResponderToEmergency(${responder.id})">
+                        ${responder.status === 'online' ? 'Assign' : 'Busy'}
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Handle new emergency from tourist
+    handleNewEmergency(emergency) {
+        // Check if emergency already exists
+        const existingIndex = this.emergencies.findIndex(e => e.id === emergency.id);
+        
+        if (existingIndex === -1) {
+            this.emergencies.unshift(emergency);
+        } else {
+            this.emergencies[existingIndex] = emergency;
+        }
+        
+        this.addEmergencyToMap(emergency);
+        this.updateEmergencyDisplay();
+        this.showEmergencyNotification(emergency);
+    }
+
     viewEmergencyDetails(emergencyId) {
-        const emergency = this.state.emergencies.find(e => e.id === emergencyId);
+        const emergency = this.emergencies.find(e => e.id === emergencyId);
+        if (!emergency) return;
+
+        this.selectedEmergency = emergency;
+
+        document.getElementById('modalTitle').textContent = emergency.title || `${emergency.type} Emergency`;
+        document.getElementById('detailType').textContent = emergency.type.toUpperCase();
+        document.getElementById('detailLocation').textContent = emergency.location;
+        document.getElementById('detailTime').textContent = new Date(emergency.timestamp || emergency.time).toLocaleString();
+        document.getElementById('detailStatus').textContent = emergency.status.toUpperCase();
+
+        document.getElementById('emergencyModal').style.display = 'block';
+    }
+
+    closeModal() {
+        document.getElementById('emergencyModal').style.display = 'none';
+        this.selectedEmergency = null;
+    }
+
+    assignResponder() {
+        if (!this.selectedEmergency) return;
+        this.assignToNearestResponder(this.selectedEmergency.id);
+    }
+
+    assignToNearestResponder(emergencyId) {
+        const emergency = this.emergencies.find(e => e.id === emergencyId);
         if (!emergency) return;
         
-        this.state.selectedEmergency = emergency;
-        
-        document.getElementById('detailType').textContent = emergency.name;
-        document.getElementById('detailLocation').textContent = emergency.address;
-        document.getElementById('detailTime').textContent = emergency.timestamp;
-        document.getElementById('detailStatus').textContent = emergency.status.toUpperCase();
-        
-        this.showModal('Emergency Details');
-    },
-
-    // Filter emergencies
-    filterEmergencies() {
-        const filter = document.getElementById('emergencyFilter').value;
-        // Implementation for filtering would go here
-        console.log('Filtering by:', filter);
-    },
-
-    // Refresh map data
-    refreshMap() {
-        this.plotEmergenciesOnMap();
-        this.showNotification('Map data refreshed');
-    },
-
-    // Toggle heatmap
-    toggleHeatmap() {
-        this.state.heatmapEnabled = !this.state.heatmapEnabled;
-        this.showNotification(this.state.heatmapEnabled ? 'Heatmap enabled' : 'Heatmap disabled');
-    },
-
-    // Assign responder to emergency
-    assignResponder() {
-        if (!this.state.selectedEmergency) return;
-        
-        const availableResponders = this.state.responders.filter(r => r.status === 'available');
-        if (availableResponders.length > 0) {
-            this.state.selectedEmergency.status = 'assigned';
-            this.state.selectedEmergency.responder = availableResponders[0].name;
-            this.updateDashboard();
-            this.showNotification(`Responder ${availableResponders[0].name} assigned`);
-        } else {
-            this.showNotification('No available responders', 'error');
+        const availableResponders = this.responders.filter(r => r.status === 'online');
+        if (availableResponders.length === 0) {
+            this.showNotification('No available responders at the moment', 'error');
+            return;
         }
-    },
+        
+        // Assign first available responder
+        const assignedResponder = availableResponders[0];
+        emergency.assignedTo = assignedResponder.name;
+        emergency.status = 'assigned';
+        
+        // Update responder status
+        assignedResponder.status = 'busy';
+        
+        // Update in shared system if available
+        if (typeof emergencyBroadcaster !== 'undefined') {
+            emergencyBroadcaster.updateEmergency(emergencyId, {
+                assignedTo: assignedResponder.name,
+                status: 'assigned'
+            });
+        }
+        
+        this.updateEmergencyDisplay();
+        this.updateResponderDisplay();
+        this.plotEmergenciesOnMap();
+        
+        this.showNotification(`🚑 ${assignedResponder.name} assigned - ETA: 5-7 minutes`);
+    }
 
-    // Contact tourist
     contactTourist() {
-        this.showNotification('Contacting tourist...');
+        if (!this.selectedEmergency) return;
+        
+        this.showNotification(`Contacting tourist: ${this.selectedEmergency.tourist || 'Unknown'}...`);
         // Simulate contact process
         setTimeout(() => {
             this.showNotification('Tourist contacted successfully');
         }, 2000);
-    },
+    }
 
-    // Resolve emergency
     resolveEmergency() {
-        if (!this.state.selectedEmergency) return;
+        if (!this.selectedEmergency) return;
         
-        this.state.selectedEmergency.status = 'resolved';
-        this.updateDashboard();
+        this.selectedEmergency.status = 'resolved';
+        
+        // Free up the assigned responder
+        if (this.selectedEmergency.assignedTo) {
+            const responder = this.responders.find(r => r.name === this.selectedEmergency.assignedTo);
+            if (responder) {
+                responder.status = 'online';
+            }
+        }
+        
+        this.updateEmergencyDisplay();
+        this.updateResponderDisplay();
         this.closeModal();
         this.showNotification('Emergency marked as resolved');
-    },
+    }
 
-    // Export report
+    refreshMap() {
+        this.loadEmergencies();
+        this.showNotification('Map data refreshed successfully');
+    }
+
+    toggleHeatmap() {
+        this.heatmapEnabled = !this.heatmapEnabled;
+        
+        if (this.heatmapEnabled) {
+            this.emergencies.forEach(emergency => {
+                const circle = L.circle(emergency.coordinates, {
+                    color: this.getMarkerColor(emergency.type),
+                    fillColor: this.getMarkerColor(emergency.type),
+                    fillOpacity: 0.2,
+                    radius: 300
+                }).addTo(this.map);
+                this.emergencyMarkers.set(`heatmap-${emergency.id}`, circle);
+            });
+            this.showNotification('Heatmap enabled');
+        } else {
+            this.emergencyMarkers.forEach((marker, key) => {
+                if (key.startsWith('heatmap-')) {
+                    this.map.removeLayer(marker);
+                    this.emergencyMarkers.delete(key);
+                }
+            });
+            this.showNotification('Heatmap disabled');
+        }
+    }
+
+    filterEmergencies() {
+        const filter = document.getElementById('emergencyFilter').value;
+        this.showNotification(`Filtered emergencies by: ${filter}`);
+        // Implement actual filtering logic here
+    }
+
     exportReport() {
-        this.showNotification('Exporting emergency report...');
-        // Simulate export process
-        setTimeout(() => {
-            this.showNotification('Report exported successfully');
-        }, 1500);
-    },
+        this.showNotification('Export feature coming soon');
+    }
 
-    // Show modal
-    showModal(title) {
-        document.getElementById('modalTitle').textContent = title;
-        document.getElementById('emergencyModal').style.display = 'block';
-    },
+    showEmergencyNotification(emergency) {
+        if (Notification.permission === 'granted') {
+            new Notification(`🚨 New ${emergency.type} Emergency`, {
+                body: `Location: ${emergency.location}\nClick to view details`,
+                icon: '/favicon.ico'
+            });
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission();
+        }
+    }
 
-    // Close modal
-    closeModal() {
-        document.getElementById('emergencyModal').style.display = 'none';
-        this.state.selectedEmergency = null;
-    },
-
-    // Show notification
     showNotification(message, type = 'success') {
-        // Simple notification implementation
+        // Simple notification - you can enhance this with a proper UI
         console.log(`${type.toUpperCase()}: ${message}`);
-        // Could be enhanced with a proper notification system
-    },
+        // For now using alert, but you can implement a toast notification
+        alert(message);
+    }
 
-    // Setup event listeners
     setupEventListeners() {
         // Close modal when clicking outside
-        document.getElementById('emergencyModal').addEventListener('click', (e) => {
-            if (e.target.id === 'emergencyModal') this.closeModal();
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('emergencyModal');
+            if (e.target === modal) {
+                this.closeModal();
+            }
         });
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') this.closeModal();
         });
-    },
+    }
 
     startRealTimeUpdates() {
-    // Real-time updates come from emergencyBroadcaster listeners
-    // No need for simulation interval
-    console.log('Real-time emergency monitoring active');
-    
-    // Request notification permission
-    if (Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
-}
-    // Simulate live data updates
-    simulateLiveData() {
-        // This would be replaced with real API calls
-        console.log('Checking for new emergencies...');
-    }
-};
-// Add these methods to your existing authorityApp object:
+        // Load initial emergencies
+        this.loadEmergencies();
+        
+        // Set up periodic refresh (every 30 seconds)
+        setInterval(() => {
+            this.loadEmergencies();
+        }, 30000);
 
-// Create detailed popup for real emergencies
-createEmergencyPopup(emergency) {
-    return `
-        <div class="emergency-popup">
-            <h4>🚨 ${emergency.type.toUpperCase()} EMERGENCY</h4>
-            <p><strong>Tourist ID:</strong> ${emergency.touristId}</p>
-            <p><strong>Location:</strong> ${emergency.location}</p>
-            <p><strong>Time:</strong> ${new Date(emergency.timestamp).toLocaleString()}</p>
-            <p><strong>Status:</strong> <span style="color: red;">${emergency.status}</span></p>
-            <button onclick="authorityApp.viewEmergencyDetails(${emergency.id})" 
-                    class="primary-btn small">View Details</button>
-            <button onclick="authorityApp.assignToNearestResponder(${emergency.id})" 
-                    class="secondary-btn small">Assign Responder</button>
-        </div>
-    `;
-},
-
-// Show browser notification for new emergencies
-showEmergencyNotification(emergency) {
-    if (Notification.permission === 'granted') {
-        new Notification(`🚨 New ${emergency.type} Emergency`, {
-            body: `Location: ${emergency.location}\nClick to view details`
-        });
-    } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission();
-    }
-},
-
-// Assign nearest available responder
-assignToNearestResponder(emergencyId) {
-    const emergency = this.state.emergencies.find(e => e.id === emergencyId);
-    if (!emergency) return;
-    
-    const availableResponders = this.getAvailableResponders();
-    if (availableResponders.length === 0) {
-        this.showNotification('No available responders at the moment');
-        return;
-    }
-    
-    // Assign first available responder (in real app, calculate nearest)
-    const assignedResponder = availableResponders[0];
-    emergency.assignedResponder = assignedResponder.name;
-    emergency.status = 'ASSIGNED';
-    
-    // Update in shared system so tourist can see
-    emergencyBroadcaster.updateEmergency(emergencyId, {
-        assignedResponder: assignedResponder.name,
-        status: 'ASSIGNED'
-    });
-    
-    this.updateEmergencyList();
-    this.showNotification(`🚑 ${assignedResponder.name} assigned - ETA: 5-7 minutes`);
-},
-
-// Get available responders (replace with real data)
-getAvailableResponders() {
-    return [
-        { name: 'Unit Alpha-01', location: 'Near City Center', available: true },
-        { name: 'Unit Bravo-02', location: 'East District', available: true },
-        { name: 'Medical Team-04', location: 'Central Hospital', available: true }
-    ].filter(r => r.available);
-}
-// Initialize the authority dashboard
-document.addEventListener('DOMContentLoaded', () => {
-    authorityApp.init();
-});
-state: {
-    map: null,
-    emergencies: [],
-    responders: [],
-    selectedEmergency: null,
-    heatmapEnabled: false,
-    emergencyMarkers: {}  // ← ADD THIS
-},
-// ADD THESE METHODS TO YOUR EXISTING authorityApp:
-
-// Real-time emergency loading
-loadEmergencies() {
-    // Get real emergencies from shared system
-    this.state.emergencies = emergencyBroadcast.getActiveEmergencies();
-    this.updateDashboard();
-    this.plotEmergenciesOnMap();
-    
-    // Listen for new emergencies in real-time
-    emergencyBroadcast.addEmergencyListener((emergency, action) => {
-        if (action === 'new') {
-            this.handleNewEmergency(emergency);
-        } else if (action === 'update') {
-            this.updateEmergencyMarker(emergency);
+        // Request notification permission
+        if (Notification.permission === 'default') {
+            Notification.requestPermission();
         }
-    });
-},
 
-// Handle new emergency from tourist
-handleNewEmergency(emergency) {
-    this.state.emergencies.unshift(emergency);
-    this.addEmergencyToMap(emergency);
-    this.updateEmergencyList();
-    this.updateDashboard();
-    this.showEmergencyNotification(emergency);
-},
-
-// Add emergency to map with real coordinates
-addEmergencyToMap(emergency) {
-    const [lat, lng] = emergency.coordinates.split(',').map(Number);
-    
-    const marker = L.marker([lat, lng], {
-        icon: this.createEmergencyIcon(emergency.type)
-    }).addTo(this.state.map);
-    
-    marker.bindPopup(this.createEmergencyPopup(emergency));
-    this.state.emergencyMarkers = this.state.emergencyMarkers || {};
-    this.state.emergencyMarkers[emergency.id] = marker;
-},
-
-// Update emergency marker when tourist moves
-updateEmergencyMarker(emergency) {
-    const marker = this.state.emergencyMarkers[emergency.id];
-    if (marker) {
-        const [lat, lng] = emergency.coordinates.split(',').map(Number);
-        marker.setLatLng([lat, lng]);
-        marker.setPopupContent(this.createEmergencyPopup(emergency));
+        console.log('Real-time emergency monitoring active');
     }
-},
-
-// Create detailed popup for real emergencies
-createEmergencyPopup(emergency) {
-    return `
-        <div class="emergency-popup">
-            <h4>🚨 ${emergency.type} EMERGENCY</h4>
-            <p><strong>Tourist ID:</strong> ${emergency.touristId}</p>
-            <p><strong>Location:</strong> ${emergency.location}</p>
-            <p><strong>Time:</strong> ${new Date(emergency.timestamp).toLocaleString()}</p>
-            <p><strong>Status:</strong> <span style="color: red;">${emergency.status}</span></p>
-            <button onclick="authorityApp.assignToNearestResponder('${emergency.id}')" 
-                    class="primary-btn small">Assign Responder</button>
-        </div>
-    `;
-},
-
-// Show browser notification
-showEmergencyNotification(emergency) {
-    if (Notification.permission === 'granted') {
-        new Notification(`🚨 New ${emergency.type} Emergency`, {
-            body: `Tourist: ${emergency.touristId}\nLocation: ${emergency.location}`
-        });
-    }
-},
-
-// Assign responder
-assignToNearestResponder(emergencyId) {
-    const emergency = this.state.emergencies.find(e => e.id === emergencyId);
-    if (!emergency) return;
-    
-    const responders = ['Unit Alpha-01', 'Unit Bravo-02', 'Medical Team-03'];
-    const assigned = responders[Math.floor(Math.random() * responders.length)];
-    
-    emergencyBroadcast.updateEmergency(emergencyId, {
-        assignedTo: assigned,
-        status: 'ASSIGNED'
-    });
-
-    this.showNotification(`👮 ${assigned} assigned to emergency`);
 }
+
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.authorityApp = new AuthorityApp();
+});
