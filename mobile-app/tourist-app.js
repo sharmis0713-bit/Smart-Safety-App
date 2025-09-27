@@ -1,3 +1,4 @@
+// Tourist Safety Application
 const safetyApp = {
     // App configuration
     config: {
@@ -38,6 +39,7 @@ const safetyApp = {
 
     // Initialize the application
     init() {
+        this.checkAuthentication();
         this.initMap();
         this.setupEventListeners();
         this.startMetricsUpdates();
@@ -47,7 +49,25 @@ const safetyApp = {
             this.getLocation();
         }, 1000);
         
-        console.log('SafeTravel Guardian initialized');
+        console.log('SafeTravel Guardian Tourist Dashboard initialized');
+    },
+
+    // NEW: Check authentication
+    checkAuthentication() {
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+        
+        if (currentUser.type !== 'tourist') {
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        // Update UI with user info if available
+        if (currentUser.user && currentUser.user.name) {
+            const welcomeElement = document.querySelector('.user-welcome');
+            if (welcomeElement) {
+                welcomeElement.textContent = `Welcome, ${currentUser.user.name}`;
+            }
+        }
     },
 
     // Initialize the map
@@ -239,11 +259,15 @@ const safetyApp = {
                     <small>Your safety status is actively monitored</small>
                 </div>
             `;
-            countElement.textContent = 'No recent alerts';
+            if (countElement) {
+                countElement.textContent = 'No recent alerts';
+            }
             return;
         }
         
-        countElement.textContent = `${this.state.emergencies.length} recent alert(s)`;
+        if (countElement) {
+            countElement.textContent = `${this.state.emergencies.length} recent alert(s)`;
+        }
         
         historyContainer.innerHTML = this.state.emergencies.map(emergency => `
             <div class="emergency-item">
@@ -258,24 +282,39 @@ const safetyApp = {
 
     // Update response status display
     updateResponseStatus(message) {
-        document.getElementById('responseStatus').textContent = message;
+        const responseStatus = document.getElementById('responseStatus');
+        if (responseStatus) {
+            responseStatus.textContent = message;
+        }
     },
 
     // Update location status display
     updateLocationStatus(message) {
-        document.getElementById('locationText').textContent = message;
+        const locationText = document.getElementById('locationText');
+        if (locationText) {
+            locationText.textContent = message;
+        }
     },
 
     // Show modal dialog
     showModal(title, content) {
-        document.getElementById('modalTitle').textContent = title;
-        document.getElementById('modalContent').innerHTML = content;
-        document.getElementById('emergencyModal').style.display = 'block';
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        const modal = document.getElementById('emergencyModal');
+        
+        if (modalTitle && modalContent && modal) {
+            modalTitle.textContent = title;
+            modalContent.innerHTML = content;
+            modal.style.display = 'block';
+        }
     },
 
     // Close modal dialog
     closeModal() {
-        document.getElementById('emergencyModal').style.display = 'none';
+        const modal = document.getElementById('emergencyModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
     },
 
     // Setup event listeners
@@ -286,9 +325,12 @@ const safetyApp = {
         });
 
         // Close modal when clicking outside
-        document.getElementById('emergencyModal').addEventListener('click', (e) => {
-            if (e.target.id === 'emergencyModal') this.closeModal();
-        });
+        const modal = document.getElementById('emergencyModal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target.id === 'emergencyModal') this.closeModal();
+            });
+        }
 
         // Refresh location when page becomes visible
         document.addEventListener('visibilitychange', () => {
@@ -313,10 +355,15 @@ const safetyApp = {
     startMetricsUpdates() {
         // Update response time periodically
         setInterval(() => {
-            document.getElementById('responseTime').textContent = 
-                (1.5 + Math.random() * 2).toFixed(1) + 's average';
-            document.getElementById('activeResponders').textContent = 
-                Math.floor(10 + Math.random() * 5) + ' online';
+            const responseTime = document.getElementById('responseTime');
+            const activeResponders = document.getElementById('activeResponders');
+            
+            if (responseTime) {
+                responseTime.textContent = (1.5 + Math.random() * 2).toFixed(1) + 's average';
+            }
+            if (activeResponders) {
+                activeResponders.textContent = Math.floor(10 + Math.random() * 5) + ' online';
+            }
         }, 5000);
     }
 };
@@ -325,4 +372,3 @@ const safetyApp = {
 document.addEventListener('DOMContentLoaded', () => {
     safetyApp.init();
 });
-
