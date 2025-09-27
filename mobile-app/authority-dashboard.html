@@ -6,173 +6,454 @@
     <title>SafeTravel Guardian • Authority Dashboard</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/common.css">
-    <link rel="stylesheet" href="styles/authority.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Section */
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 40px 20px;
+        }
+
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slogan {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        /* Stats Box */
+        .stats-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 1000px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats-title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            color: #4ecdc4;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+
+        .stat-box.critical { border-left-color: #ff6b6b; }
+        .stat-box.online { border-left-color: #4ecdc4; }
+        .stat-box.response { border-left-color: #ffe66d; }
+        .stat-box.resolved { border-left-color: #1dd1a1; }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-value.critical { color: #ff6b6b; }
+        .stat-value.online { color: #4ecdc4; }
+        .stat-value.response { color: #ffe66d; }
+        .stat-value.resolved { color: #1dd1a1; }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Main Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        /* Map Section */
+        .map-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #4ecdc4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .map-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn.primary {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        #authorityMap {
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        /* Emergency Alerts */
+        .alerts-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .alert-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        select {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            width: 200px;
+        }
+
+        .emergency-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .emergency-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 4px solid;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .emergency-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .emergency-item.critical { border-left-color: #ff6b6b; }
+        .emergency-item.medical { border-left-color: #4ecdc4; }
+
+        .emergency-type {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .emergency-location {
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .emergency-time {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+
+        .emergency-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active { background: #ff6b6b; color: white; }
+
+        /* Responder Management */
+        .responder-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            margin-top: 25px;
+            grid-column: 1 / -1;
+        }
+
+        .responder-stats {
+            background: rgba(78, 205, 196, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .responder-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .responder-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .responder-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .responder-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .responder-status {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .status-available { color: #4ecdc4; }
+        .status-busy { color: #ff6b6b; }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .main-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <!-- Authority Header -->
-        <header class="authority-header">
-            <div class="header-content">
-                <h1 class="app-title">🚨 Emergency Response Dashboard</h1>
-                <p class="app-subtitle">Live Emergency Monitoring & Response Coordination</p>
-            </div>
-            <div class="header-actions">
-                <div class="authority-info">
-                    <span class="authority-name" id="authorityName">Response Unit 01</span>
-                    <span class="status-indicator online">● Live</span>
-                    <button class="logout-btn" onclick="authSystem.logout()">Logout</button>
-                </div>
-            </div>
+        <!-- Main Header -->
+        <header class="dashboard-header">
+            <h1 class="main-title">Emergency Response Dashboard</h1>
+            <p class="slogan">Live Monitoring • Rapid Response • Citizen Safety</p>
         </header>
 
-        <!-- Emergency Overview -->
-        <section class="emergency-overview glass-card">
-            <div class="overview-header">
-                <h2>Active Emergencies</h2>
-                <div class="overview-stats">
-                    <div class="stat-item critical">
-                        <span class="stat-value" id="activeEmergencies">0</span>
-                        <span class="stat-label">Active</span>
-                    </div>
-                    <div class="stat-item online">
-                        <span class="stat-value" id="respondersOnline">0</span>
-                        <span class="stat-label">Responders</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="avgResponseTime">0s</span>
-                        <span class="stat-label">Avg Response</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="resolvedToday">0</span>
-                        <span class="stat-label">Resolved Today</span>
-                    </div>
+        <!-- Active Emergencies Stats -->
+        <section class="stats-container">
+            <h2 class="stats-title">Active Emergencies Overview</h2>
+            <div class="stats-grid">
+                <div class="stat-box critical">
+                    <span class="stat-value critical">3</span>
+                    <span class="stat-label">Active Emergencies</span>
+                </div>
+                <div class="stat-box online">
+                    <span class="stat-value online">12</span>
+                    <span class="stat-label">Responders Online</span>
+                </div>
+                <div class="stat-box response">
+                    <span class="stat-value response">4.2s</span>
+                    <span class="stat-label">Avg Response Time</span>
+                </div>
+                <div class="stat-box resolved">
+                    <span class="stat-value resolved">8</span>
+                    <span class="stat-label">Resolved Today</span>
                 </div>
             </div>
         </section>
 
         <!-- Main Content Grid -->
-        <main class="authority-content">
-            <!-- Emergency Map -->
-            <section class="emergency-map glass-card">
-                <div class="section-header">
+        <div class="content-grid">
+            <!-- Map Section -->
+            <section class="map-section">
+                <div class="section-title">
                     <h2>Live Emergency Map</h2>
                     <div class="map-controls">
-                        <button class="primary-btn" onclick="authorityApp.refreshMap()">Refresh</button>
-                        <button class="secondary-btn" onclick="authorityApp.toggleHeatmap()">Heatmap</button>
+                        <button class="btn primary" onclick="refreshMap()">Refresh</button>
+                        <button class="btn secondary" onclick="toggleHeatmap()">Heatmap</button>
                     </div>
                 </div>
                 <div id="authorityMap"></div>
-                <div class="map-legend">
-                    <div class="legend-item">
-                        <span class="legend-dot critical"></span>
-                        <span>Critical Emergency</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-dot medical"></span>
-                        <span>Medical Assistance</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-dot security"></span>
-                        <span>Security Assistance</span>
-                    </div>
-                </div>
             </section>
 
-            <!-- Emergency List -->
-            <section class="emergency-list glass-card">
-                <div class="section-header">
+            <!-- Emergency Alerts -->
+            <section class="alerts-section">
+                <div class="section-title">
                     <h2>Emergency Alerts</h2>
-                    <div class="list-controls">
-                        <select id="emergencyFilter" onchange="authorityApp.filterEmergencies()">
-                            <option value="all">All Emergencies</option>
-                            <option value="critical">Critical Only</option>
-                            <option value="medical">Medical</option>
-                            <option value="security">Security</option>
-                            <option value="support">Support</option>
+                    <div class="alert-controls">
+                        <select onchange="filterEmergencies()">
+                            <option>All Emergencies</option>
+                            <option>Critical Only</option>
+                            <option>Medical</option>
+                            <option>Security</option>
                         </select>
-                        <button class="primary-btn" onclick="authorityApp.exportReport()">Export</button>
+                        <button class="btn primary">Export</button>
                     </div>
                 </div>
-                <div class="emergencies-container" id="emergenciesContainer">
-                    <div class="empty-state">
-                        <p>No active emergencies</p>
-                        <small>All systems monitoring normally</small>
+                <div class="emergency-list">
+                    <div class="emergency-item critical">
+                        <div class="emergency-type">Critical Emergency</div>
+                        <div class="emergency-location">Downtown District</div>
+                        <div class="emergency-time">Reported: 11:35:01 pm</div>
+                        <span class="emergency-status status-active">ACTIVE</span>
                     </div>
-                </div>
-            </section>
-
-            <!-- Responder Management -->
-            <section class="responder-panel glass-card">
-                <div class="section-header">
-                    <h2>Responder Management</h2>
-                    <div class="responder-stats">
-                        <span id="availableResponders">5 available</span>
-                    </div>
-                </div>
-                <div class="responder-list" id="responderList">
-                    <div class="responder-item online">
-                        <div class="responder-info">
-                            <span class="responder-name">Unit Alpha-01</span>
-                            <span class="responder-status">Available</span>
-                        </div>
-                        <div class="responder-actions">
-                            <button class="primary-btn small">Assign</button>
-                        </div>
-                    </div>
-                    <div class="responder-item busy">
-                        <div class="responder-info">
-                            <span class="responder-name">Unit Bravo-02</span>
-                            <span class="responder-status">On Emergency</span>
-                        </div>
-                        <div class="responder-actions">
-                            <button class="secondary-btn small" disabled>Busy</button>
-                        </div>
+                    <div class="emergency-item medical">
+                        <div class="emergency-type">Medical Assistance Needed</div>
+                        <div class="emergency-location">Central Park Area</div>
+                        <div class="emergency-time">Reported: 11:35:01 pm</div>
+                        <span class="emergency-status status-active">ACTIVE</span>
                     </div>
                 </div>
             </section>
-        </main>
+        </div>
 
-        <!-- Emergency Detail Modal -->
-        <div id="emergencyModal" class="modal">
-            <div class="modal-content glass-card large">
-                <div class="modal-header">
-                    <h3 id="modalTitle">Emergency Details</h3>
-                    <span class="close-btn" onclick="authorityApp.closeModal()">×</span>
+        <!-- Responder Management -->
+        <section class="responder-section">
+            <div class="section-title">
+                <h2>Responder Management</h2>
+                <div class="responder-stats">3 available responders</div>
+            </div>
+            <div class="responder-list">
+                <div class="responder-item">
+                    <div class="responder-info">
+                        <div class="responder-name">Unit Alpha-01</div>
+                        <div class="responder-status status-available">Available</div>
+                    </div>
+                    <button class="btn primary">Assign</button>
                 </div>
-                <div class="modal-body" id="modalContent">
-                    <div class="emergency-details">
-                        <div class="detail-row">
-                            <span class="detail-label">Emergency Type:</span>
-                            <span class="detail-value" id="detailType">--</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Location:</span>
-                            <span class="detail-value" id="detailLocation">--</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Time Reported:</span>
-                            <span class="detail-value" id="detailTime">--</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Status:</span>
-                            <span class="detail-value" id="detailStatus">--</span>
-                        </div>
+                <div class="responder-item">
+                    <div class="responder-info">
+                        <div class="responder-name">Unit Bravo-02</div>
+                        <div class="responder-status status-busy">On Emergency</div>
                     </div>
-                    <div class="action-buttons">
-                        <button class="primary-btn" onclick="authorityApp.assignResponder()">Assign Responder</button>
-                        <button class="secondary-btn" onclick="authorityApp.contactTourist()">Contact Tourist</button>
-                        <button class="secondary-btn" onclick="authorityApp.resolveEmergency()">Mark Resolved</button>
+                    <button class="btn secondary" disabled>Busy</button>
+                </div>
+                <div class="responder-item">
+                    <div class="responder-info">
+                        <div class="responder-name">Medical Team-04</div>
+                        <div class="responder-status status-available">Available</div>
                     </div>
+                    <button class="btn primary">Assign</button>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/emergency-broadcast.js"></script>
-    <script src="js/authority-app.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/authority-app.js"></script>
+    <script>
+        // Initialize Map
+        const map = L.map('authorityMap').setView([40.7128, -74.0060], 12);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add sample markers
+        const emergencies = [
+            { coords: [40.7135, -74.0065], type: 'critical', title: 'Critical Emergency' },
+            { coords: [40.7829, -73.9654], type: 'medical', title: 'Medical Assistance' }
+        ];
+
+        emergencies.forEach(emergency => {
+            L.marker(emergency.coords)
+                .addTo(map)
+                .bindPopup(`<b>${emergency.title}</b><br>Active emergency`);
+        });
+
+        function refreshMap() {
+            alert('Map refreshed!');
+        }
+
+        function toggleHeatmap() {
+            alert('Heatmap toggled!');
+        }
+
+        function filterEmergencies() {
+            alert('Filter applied!');
+        }
+    </script>
 </body>
 </html>
