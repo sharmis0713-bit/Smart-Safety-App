@@ -3,208 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafeTravel Guardian • Secure Login</title>
+    <title>SafeTravel Guardian • Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/login.css">
 </head>
 <body>
     <div class="login-container">
-        <!-- Security Background Pattern -->
-        <div class="security-background">
-            <div class="grid-pattern"></div>
-            <div class="floating-shapes">
-                <div class="shape shape-1"></div>
-                <div class="shape shape-2"></div>
-                <div class="shape shape-3"></div>
+        <!-- Left Side - Branding -->
+        <div class="login-branding">
+            <div class="brand-content">
+                <div class="logo">
+                    <div class="logo-icon">🛡️</div>
+                    <h1>SafeTravel Guardian</h1>
+                </div>
+                <p class="brand-tagline">Secure access to your safety dashboard</p>
             </div>
         </div>
 
-        <!-- Main Login Card -->
-        <div class="login-card glass-card">
-            <!-- Header -->
-            <div class="login-header">
-                <div class="logo">
-                    <div class="logo-icon">🛡️</div>
-                    <div class="logo-text">
-                        <h1>SafeTravel Guardian</h1>
-                        <p>Secure Access Portal</p>
-                    </div>
+        <!-- Right Side - Login Form -->
+        <div class="login-form-section">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>Login to SafeTravel</h2>
+                    <p>Enter your credentials to access your account</p>
                 </div>
-            </div>
 
-            <!-- Login Tabs -->
-            <div class="login-tabs">
-                <button class="tab-btn active" data-tab="tourist">
-                    <span class="tab-icon">👤</span>
-                    Tourist Login
-                </button>
-                <button class="tab-btn" data-tab="authority">
-                    <span class="tab-icon">👮</span>
-                    Authority Login
-                </button>
-            </div>
+                <!-- User Type Selection -->
+                <div class="user-type-selector">
+                    <button class="user-type-btn active" data-type="tourist">
+                        <span class="user-icon">👤</span>
+                        Tourist
+                    </button>
+                    <button class="user-type-btn" data-type="authority">
+                        <span class="user-icon">👮</span>
+                        Authority
+                    </button>
+                </div>
 
-            <!-- Tourist Login Form -->
-            <div class="login-form active" id="touristForm">
-                <form id="touristLoginForm">
+                <!-- Tourist Login Form -->
+                <form class="login-form active" id="touristLoginForm">
                     <div class="input-group">
-                        <label for="touristEmail">Email Address</label>
-                        <div class="input-with-icon">
-                            <span class="input-icon">📧</span>
-                            <input type="email" id="touristEmail" placeholder="tourist@example.com" value="tourist@demo.com" required>
-                        </div>
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="email@service.com" value="tourist@demo.com" required>
                     </div>
-                    
+
                     <div class="input-group">
-                        <label for="touristPassword">Password</label>
-                        <div class="input-with-icon">
-                            <span class="input-icon">🔒</span>
-                            <input type="password" id="touristPassword" placeholder="Enter your password" value="password123" required>
-                        </div>
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Enter your password" value="password123" required>
                     </div>
 
                     <div class="form-options">
                         <label class="checkbox">
-                            <input type="checkbox" id="rememberMe" checked>
+                            <input type="checkbox" id="rememberMe">
                             <span class="checkmark"></span>
-                            Remember this device
+                            Remember Me
                         </label>
-                        <a href="#" class="forgot-link">Forgot Password?</a>
+                        <a href="#" class="forgot-password">Forgot Password?</a>
                     </div>
 
-                    <button type="submit" class="login-btn primary-btn">
-                        <span class="btn-icon">🛡️</span>
-                        Access Safety Dashboard
+                    <button type="submit" class="login-btn primary">
+                        Login to Dashboard
+                    </button>
+
+                    <div class="divider">
+                        <span>or continue with</span>
+                    </div>
+
+                    <button type="button" class="login-btn google">
+                        <span class="google-icon">🔍</span>
+                        Login with Google
                     </button>
                 </form>
 
-                <div class="demo-credentials">
-                    <div class="demo-card">
-                        <h4>Demo Tourist Access</h4>
-                        <p><strong>Email:</strong> tourist@demo.com</p>
-                        <p><strong>Password:</strong> password123</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Authority Login Form -->
-            <div class="login-form" id="authorityForm">
-                <form id="authorityLoginForm">
+                <!-- Authority Login Form -->
+                <form class="login-form" id="authorityLoginForm">
                     <div class="input-group">
-                        <label for="authorityID">Authority ID</label>
-                        <div class="input-with-icon">
-                            <span class="input-icon">🆔</span>
-                            <input type="text" id="authorityID" placeholder="AUTH-XXXX-XXXX" value="AUTH-001" required>
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="authorityPassword">Password</label>
-                        <div class="input-with-icon">
-                            <span class="input-icon">🔒</span>
-                            <input type="password" id="authorityPassword" placeholder="Enter secure password" value="auth123" required>
-                        </div>
+                        <label for="authorityId">Authority ID</label>
+                        <input type="text" id="authorityId" placeholder="AUTH-XXXX-XXXX" value="AUTH-001" required>
                     </div>
 
                     <div class="input-group">
-                        <label for="authorityCode">Security Code</label>
-                        <div class="input-with-icon">
-                            <span class="input-icon">⚡</span>
-                            <input type="password" id="authorityCode" placeholder="Enter security code" value="7890" required>
-                        </div>
+                        <label for="authPassword">Password</label>
+                        <input type="password" id="authPassword" placeholder="Enter your password" value="auth123" required>
                     </div>
 
-                    <div class="security-notice">
-                        <div class="security-icon">⚠️</div>
-                        <p>This portal is for authorized emergency personnel only. All access attempts are logged and monitored.</p>
+                    <div class="input-group">
+                        <label for="securityCode">Security Code</label>
+                        <input type="password" id="securityCode" placeholder="Enter security code" value="7890" required>
                     </div>
 
-                    <button type="submit" class="login-btn authority-btn">
-                        <span class="btn-icon">🚨</span>
+                    <div class="form-options">
+                        <label class="checkbox">
+                            <input type="checkbox" id="rememberAuth">
+                            <span class="checkmark"></span>
+                            Remember This Device
+                        </label>
+                    </div>
+
+                    <button type="submit" class="login-btn primary">
                         Access Emergency Dashboard
                     </button>
+
+                    <div class="security-notice">
+                        <span class="notice-icon">⚠️</span>
+                        Authorized personnel only. All access is monitored.
+                    </div>
                 </form>
 
-                <div class="demo-credentials">
-                    <div class="demo-card">
-                        <h4>Demo Authority Access</h4>
-                        <p><strong>ID:</strong> AUTH-001</p>
-                        <p><strong>Password:</strong> auth123</p>
-                        <p><strong>Code:</strong> 7890</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="login-footer">
-                <div class="security-features">
-                    <div class="feature">
-                        <span class="feature-icon">🔐</span>
-                        <span>256-bit SSL Encryption</span>
-                    </div>
-                    <div class="feature">
-                        <span class="feature-icon">📡</span>
-                        <span>Secure Connection</span>
-                    </div>
-                    <div class="feature">
-                        <span class="feature-icon">👁️</span>
-                        <span>Activity Monitored</span>
-                    </div>
-                </div>
-                <p class="copyright">© 2024 SafeTravel Guardian. All rights reserved.</p>
-            </div>
-        </div>
-
-        <!-- Welcome Panel -->
-        <div class="welcome-panel">
-            <div class="welcome-content">
-                <h2>Your Safety, Our Priority</h2>
-                <p class="welcome-subtitle">24/7 Emergency Response & Protection System</p>
-                
-                <div class="feature-highlights">
-                    <div class="highlight-item">
-                        <div class="highlight-icon">📍</div>
-                        <div class="highlight-text">
-                            <strong>Real-time GPS Tracking</strong>
-                            <span>Instant location sharing during emergencies</span>
-                        </div>
-                    </div>
-                    <div class="highlight-item">
-                        <div class="highlight-icon">🚨</div>
-                        <div class="highlight-text">
-                            <strong>One-Touch Emergency</strong>
-                            <span>Immediate connection to local authorities</span>
-                        </div>
-                    </div>
-                    <div class="highlight-item">
-                        <div class="highlight-icon">🌍</div>
-                        <div class="highlight-text">
-                            <strong>Global Coverage</strong>
-                            <span>Protected in 150+ countries worldwide</span>
-                        </div>
-                    </div>
-                    <div class="highlight-item">
-                        <div class="highlight-icon">⏱️</div>
-                        <div class="highlight-text">
-                            <strong>Rapid Response</strong>
-                            <span>Average emergency response under 3 minutes</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat">
-                        <div class="stat-number">500K+</div>
-                        <div class="stat-label">Tourists Protected</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number">24/7</div>
-                        <div class="stat-label">Monitoring</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number">99.9%</div>
-                        <div class="stat-label">Uptime</div>
+                <div class="form-footer">
+                    <p>Don't have an account? <a href="#" class="signup-link">Sign Up</a></p>
+                    
+                    <div class="demo-credentials">
+                        <details>
+                            <summary>Demo Credentials</summary>
+                            <div class="demo-info">
+                                <div class="demo-section">
+                                    <strong>Tourist Demo:</strong>
+                                    <p>Email: tourist@demo.com</p>
+                                    <p>Password: password123</p>
+                                </div>
+                                <div class="demo-section">
+                                    <strong>Authority Demo:</strong>
+                                    <p>ID: AUTH-001</p>
+                                    <p>Password: auth123</p>
+                                    <p>Code: 7890</p>
+                                </div>
+                            </div>
+                        </details>
                     </div>
                 </div>
             </div>
