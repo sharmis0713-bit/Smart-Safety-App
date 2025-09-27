@@ -1,1 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeTravel Guardian • Authority Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/authority.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Authority Header -->
+        <header class="authority-header">
+            <div class="header-content">
+                <h1 class="app-title">🚨 Emergency Response Dashboard</h1>
+                <p class="app-subtitle">Live Emergency Monitoring & Response Coordination</p>
+            </div>
+            <div class="header-actions">
+                <div class="authority-info">
+                    <span class="authority-name">Response Unit 01</span>
+                    <span class="status-indicator online">● Live</span>
+                    <button class="logout-btn" onclick="authSystem.logout()">Logout</button>
+                </div>
+            </div>
+        </header>
 
+        <!-- Emergency Overview -->
+        <section class="emergency-overview glass-card">
+            <div class="overview-header">
+                <h2>Active Emergencies</h2>
+                <div class="overview-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="activeEmergencies">0</span>
+                        <span class="stat-label">Active</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="respondersOnline">0</span>
+                        <span class="stat-label">Responders</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="avgResponseTime">0s</span>
+                        <span class="stat-label">Avg Response</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <main class="authority-content">
+            <!-- Emergency Map -->
+            <section class="emergency-map glass-card">
+                <div class="section-header">
+                    <h2>Live Emergency Map</h2>
+                    <div class="map-controls">
+                        <button class="primary-btn">Refresh</button>
+                    </div>
+                </div>
+                <div id="authorityMap"></div>
+            </section>
+
+            <!-- Emergency List -->
+            <section class="emergency-list glass-card">
+                <div class="section-header">
+                    <h2>Emergency Alerts</h2>
+                    <div class="list-controls">
+                        <select id="emergencyFilter">
+                            <option value="all">All Emergencies</option>
+                            <option value="critical">Critical Only</option>
+                            <option value="medical">Medical</option>
+                            <option value="security">Security</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="emergencies-container" id="emergenciesContainer">
+                    <div class="empty-state">
+                        <p>No active emergencies</p>
+                        <small>All systems monitoring normally</small>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/authority-app.js"></script>
+</body>
+</html>
