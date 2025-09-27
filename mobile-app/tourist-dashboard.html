@@ -142,6 +142,61 @@
                     </div>
                 </div>
             </section>
+
+            <!-- NEW: Pondicherry Safety Intelligence -->
+            <section class="safety-intelligence glass-card">
+                <div class="section-header">
+                    <h2>🏙️ Pondicherry Safety Intelligence</h2>
+                    <div class="live-indicator">
+                        <span class="live-dot"></span>
+                        Live Updates
+                    </div>
+                </div>
+                
+                <div class="safety-map-container">
+                    <div id="safetyHeatmap"></div>
+                    <div class="map-legend">
+                        <div class="legend-item">
+                            <span class="legend-color safe"></span>
+                            <span>Safe (80-100)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color cautious"></span>
+                            <span>Cautious (60-79)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color unsafe"></span>
+                            <span>Unsafe (0-59)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="safety-analysis">
+                    <div class="analysis-grid">
+                        <div class="analysis-card">
+                            <h4>Current Safety Score</h4>
+                            <div class="score-display" id="currentSafetyScore">85</div>
+                            <div class="score-label" id="safetyLevel">Good</div>
+                        </div>
+                        <div class="analysis-card">
+                            <h4>Risk Factors</h4>
+                            <div class="factors-list" id="riskFactors">
+                                <div class="factor positive">✅ Daytime</div>
+                                <div class="factor negative">⚠️ Tourist Area</div>
+                                <div class="factor positive">✅ Well Lit</div>
+                            </div>
+                        </div>
+                        <div class="analysis-card">
+                            <h4>Recommendations</h4>
+                            <div class="recommendations" id="safetyRecommendations">
+                                <p>• Stay in well-lit areas</p>
+                                <p>• Avoid isolated streets</p>
+                                <p>• Emergency contacts nearby</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <!-- Emergency Modal -->
@@ -164,5 +219,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/tourist-app.js"></script>
+    <script src="js/safety-ai.js"></script> <!-- ADD THIS LINE -->
 </body>
 </html>
+   
