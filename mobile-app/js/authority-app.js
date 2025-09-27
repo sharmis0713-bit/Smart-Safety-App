@@ -14,7 +14,9 @@ const authorityApp = {
     this.initMap();
     this.loadEmergencies();  // ← NEW METHOD
     this.setupEventListeners();
-    this.startRealTimeUpdates();  // ← RENAME THIS
+    this.startRealTimeUpdates(); // ← RENAME THIS
+
+    console.log('Authority Dashboard - Live SOS Feed Active');
 }
     // Check if user is authenticated as authority
     checkAuthentication() {
@@ -89,27 +91,21 @@ updateEmergencyMarker(emergency) {
         marker.setPopupContent(this.createEmergencyPopup(emergency));
     }
 },
-   
-    // Plot emergencies on the map
-    plotEmergenciesOnMap() {
-        // Clear existing markers
-        this.state.map.eachLayer(layer => {
-            if (layer instanceof L.Marker) {
-                this.state.map.removeLayer(layer);
-            }
+plotEmergenciesOnMap() {
+    // Clear existing markers
+    if (this.state.emergencyMarkers) {
+        Object.values(this.state.emergencyMarkers).forEach(marker => {
+            this.state.map.removeLayer(marker);
         });
+    }
+    this.state.emergencyMarkers = {};
 
-        // Add emergency markers
-        this.state.emergencies.forEach(emergency => {
-            const markerColor = this.getEmergencyColor(emergency.type);
-            const marker = L.marker([emergency.location.lat, emergency.location.lng])
-                .addTo(this.state.map)
-                .bindPopup(`
-                    <strong>${emergency.name}</strong><br>
-                    ${emergency.touristInfo}<br>
-                    Status: ${emergency.status}<br>
-                    <button onclick="authorityApp.viewEmergencyDetails(${emergency.id})">View Details</button>
-                `);
+    // Add emergency markers
+    this.state.emergencies.forEach(emergency => {
+        this.addEmergencyToMap(emergency);
+    });
+},
+   
             
             // Add custom icon based on emergency type
             marker.setIcon(this.createEmergencyIcon(emergency.type));
@@ -151,30 +147,30 @@ updateEmergencyMarker(emergency) {
         this.updateEmergencyList();
     },
 
-    // Update emergency list display
-    updateEmergencyList() {
-        const container = document.getElementById('emergenciesContainer');
-        const emergencies = this.state.emergencies;
-        
-        if (emergencies.length === 0) {
-            container.innerHTML = '<div class="empty-state"><p>No active emergencies</p><small>All systems monitoring normally</small></div>';
-            return;
-        }
-        
-        container.innerHTML = emergencies.map(emergency => `
-            <div class="emergency-item ${emergency.type}" onclick="authorityApp.viewEmergencyDetails(${emergency.id})">
-                <div class="emergency-header">
-                    <span class="emergency-type">${emergency.name}</span>
-                    <span class="emergency-time">${emergency.timestamp}</span>
-                </div>
-                <div class="emergency-location">${emergency.address}</div>
-                <div class="emergency-info">
-                    <span class="emergency-status status-${emergency.status}">${emergency.status.toUpperCase()}</span>
-                    ${emergency.responder ? `<span class="emergency-responder">• ${emergency.responder}</span>` : ''}
-                </div>
+    // UPDATE this method:
+updateEmergencyList() {
+    const container = document.getElementById('emergenciesContainer');
+    const emergencies = this.state.emergencies;
+    
+    if (emergencies.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>No active emergencies</p><small>Monitoring for SOS alerts</small></div>';
+        return;
+    }
+    
+    container.innerHTML = emergencies.map(emergency => `
+        <div class="emergency-item ${emergency.type.toLowerCase()}" onclick="authorityApp.viewEmergencyDetails('${emergency.id}')">
+            <div class="emergency-header">
+                <span class="emergency-type">${emergency.type} EMERGENCY</span>
+                <span class="emergency-time">${new Date(emergency.timestamp).toLocaleTimeString()}</span>
             </div>
-        `).join('');
-    },
+            <div class="emergency-location">${emergency.location}</div>
+            <div class="emergency-info">
+                <span class="emergency-status status-${emergency.status.toLowerCase()}">${emergency.status}</span>
+                ${emergency.assignedTo ? `<span class="emergency-responder">• ${emergency.assignedTo}</span>` : ''}
+            </div>
+        </div>
+    `).join('');
+},
 
     // View emergency details
     viewEmergencyDetails(emergencyId) {
@@ -377,3 +373,93 @@ state: {
     heatmapEnabled: false,
     emergencyMarkers: {}  // ← ADD THIS
 },
+// ADD THESE METHODS TO YOUR EXISTING authorityApp:
+
+// Real-time emergency loading
+loadEmergencies() {
+    // Get real emergencies from shared system
+    this.state.emergencies = emergencyBroadcast.getActiveEmergencies();
+    this.updateDashboard();
+    this.plotEmergenciesOnMap();
+    
+    // Listen for new emergencies in real-time
+    emergencyBroadcast.addEmergencyListener((emergency, action) => {
+        if (action === 'new') {
+            this.handleNewEmergency(emergency);
+        } else if (action === 'update') {
+            this.updateEmergencyMarker(emergency);
+        }
+    });
+},
+
+// Handle new emergency from tourist
+handleNewEmergency(emergency) {
+    this.state.emergencies.unshift(emergency);
+    this.addEmergencyToMap(emergency);
+    this.updateEmergencyList();
+    this.updateDashboard();
+    this.showEmergencyNotification(emergency);
+},
+
+// Add emergency to map with real coordinates
+addEmergencyToMap(emergency) {
+    const [lat, lng] = emergency.coordinates.split(',').map(Number);
+    
+    const marker = L.marker([lat, lng], {
+        icon: this.createEmergencyIcon(emergency.type)
+    }).addTo(this.state.map);
+    
+    marker.bindPopup(this.createEmergencyPopup(emergency));
+    this.state.emergencyMarkers = this.state.emergencyMarkers || {};
+    this.state.emergencyMarkers[emergency.id] = marker;
+},
+
+// Update emergency marker when tourist moves
+updateEmergencyMarker(emergency) {
+    const marker = this.state.emergencyMarkers[emergency.id];
+    if (marker) {
+        const [lat, lng] = emergency.coordinates.split(',').map(Number);
+        marker.setLatLng([lat, lng]);
+        marker.setPopupContent(this.createEmergencyPopup(emergency));
+    }
+},
+
+// Create detailed popup for real emergencies
+createEmergencyPopup(emergency) {
+    return `
+        <div class="emergency-popup">
+            <h4>🚨 ${emergency.type} EMERGENCY</h4>
+            <p><strong>Tourist ID:</strong> ${emergency.touristId}</p>
+            <p><strong>Location:</strong> ${emergency.location}</p>
+            <p><strong>Time:</strong> ${new Date(emergency.timestamp).toLocaleString()}</p>
+            <p><strong>Status:</strong> <span style="color: red;">${emergency.status}</span></p>
+            <button onclick="authorityApp.assignToNearestResponder('${emergency.id}')" 
+                    class="primary-btn small">Assign Responder</button>
+        </div>
+    `;
+},
+
+// Show browser notification
+showEmergencyNotification(emergency) {
+    if (Notification.permission === 'granted') {
+        new Notification(`🚨 New ${emergency.type} Emergency`, {
+            body: `Tourist: ${emergency.touristId}\nLocation: ${emergency.location}`
+        });
+    }
+},
+
+// Assign responder
+assignToNearestResponder(emergencyId) {
+    const emergency = this.state.emergencies.find(e => e.id === emergencyId);
+    if (!emergency) return;
+    
+    const responders = ['Unit Alpha-01', 'Unit Bravo-02', 'Medical Team-03'];
+    const assigned = responders[Math.floor(Math.random() * responders.length)];
+    
+    emergencyBroadcast.updateEmergency(emergencyId, {
+        assignedTo: assigned,
+        status: 'ASSIGNED'
+    });
+
+    this.showNotification(`👮 ${assigned} assigned to emergency`);
+}
