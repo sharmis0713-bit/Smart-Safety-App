@@ -1,1 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeTravel Guardian • Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <!-- Left Side - Branding -->
+        <div class="login-branding">
+            <div class="brand-content">
+                <div class="logo">
+                    <span class="logo-icon">🛡️</span>
+                    <h1>SafeTravel Guardian</h1>
+                </div>
+                <p class="brand-tagline">24/7 Emergency Protection & Real-time Safety Monitoring</p>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <span class="feature-icon">📍</span>
+                        <span>Real-time Location Tracking</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🚨</span>
+                        <span>Instant Emergency Response</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🌍</span>
+                        <span>Global Coverage 150+ Countries</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">⏱️</span>
+                        <span>Average Response Time: under 3 minutes</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <!-- Right Side - Login Forms -->
+        <div class="login-forms">
+            <!-- Tourist Login -->
+            <div class="login-form active" id="touristLogin">
+                <div class="form-header">
+                    <h2>Tourist Login</h2>
+                    <p>Access your safety dashboard</p>
+                </div>
+                
+                <form id="touristForm">
+                    <div class="input-group">
+                        <label for="touristEmail">Email Address</label>
+                        <input type="email" id="touristEmail" placeholder="tourist@example.com" value="tourist@demo.com" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="touristPassword">Password</label>
+                        <input type="password" id="touristPassword" placeholder="Enter your password" value="password123" required>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox">
+                            <input type="checkbox" id="rememberMe" checked>
+                            <span class="checkmark"></span>
+                            Remember me
+                        </label>
+                        <a href="#" class="forgot-password">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="login-btn tourist-btn">
+                        <span class="btn-icon">👤</span>
+                        Login as Tourist
+                    </button>
+                </form>
+
+                <div class="demo-notes">
+                    <p><strong>Demo:</strong> Use tourist@demo.com / password123</p>
+                </div>
+            </div>
+
+            <!-- Authority Login -->
+            <div class="login-form" id="authorityLogin">
+                <div class="form-header">
+                    <h2>Authority Login</h2>
+                    <p>Emergency response dashboard</p>
+                </div>
+                
+                <form id="authorityForm">
+                    <div class="input-group">
+                        <label for="authorityID">Authority ID</label>
+                        <input type="text" id="authorityID" placeholder="AUTH-XXXX-XXXX" value="AUTH-001" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="authorityPassword">Password</label>
+                        <input type="password" id="authorityPassword" placeholder="Enter your secure password" value="auth123" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="authorityCode">Security Code</label>
+                        <input type="password" id="authorityCode" placeholder="Enter security code" value="7890" required>
+                    </div>
+
+                    <button type="submit" class="login-btn authority-btn">
+                        <span class="btn-icon">👮</span>
+                        Login as Authority
+                    </button>
+                </form>
+
+                <div class="demo-notes">
+                    <p><strong>Demo:</strong> Use AUTH-001 / auth123 / 7890</p>
+                </div>
+            </div>
+
+            <!-- Login Type Selector -->
+            <div class="login-type-selector">
+                <button class="type-btn active" id="touristTypeBtn" data-type="tourist">
+                    <span class="btn-icon">👤</span>
+                    I'm a Tourist
+                </button>
+                <button class="type-btn" id="authorityTypeBtn" data-type="authority">
+                    <span class="btn-icon">👮</span>
+                    I'm Authority
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>
