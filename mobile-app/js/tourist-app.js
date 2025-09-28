@@ -44,6 +44,9 @@ const safetyApp = {
         this.setupEventListeners();
         this.startMetricsUpdates();
         
+        // Initialize Safety AI for Pondicherry
+        safetyAI.init();
+        
         // Auto-attempt location access
         setTimeout(() => {
             this.getLocation();
@@ -52,7 +55,7 @@ const safetyApp = {
         console.log('SafeTravel Guardian Tourist Dashboard initialized');
     },
 
-    // NEW: Check authentication
+    // Check authentication
     checkAuthentication() {
         const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
         
@@ -72,13 +75,14 @@ const safetyApp = {
 
     // Initialize the map
     initMap() {
-        const defaultLocation = { lat: 11.166737, lng: 76.966926 };
+        const defaultLocation = { lat: 11.9416, lng: 79.8083 }; // Pondicherry center
         
-        this.state.map = L.map('map').setView([defaultLocation.lat, defaultLocation.lng], 15);
+        this.state.map = L.map('map').setView([defaultLocation.lat, defaultLocation.lng], 13);
         
-        // Use a more professional map style
+        // Use OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
         }).addTo(this.state.map);
         
         this.state.userMarker = L.marker([defaultLocation.lat, defaultLocation.lng])
@@ -117,7 +121,7 @@ const safetyApp = {
             lng: position.coords.longitude 
         };
         
-        // Update map view
+        // Update map view to user location
         this.state.map.setView([this.state.userLocation.lat, this.state.userLocation.lng], 15);
         this.state.userMarker.setLatLng([this.state.userLocation.lat, this.state.userLocation.lng])
                      .setPopupContent('Your current location - Monitoring active')
@@ -131,6 +135,9 @@ const safetyApp = {
             `Lat: ${this.state.userLocation.lat.toFixed(6)} | Lng: ${this.state.userLocation.lng.toFixed(6)}`;
         
         document.getElementById('locationAccuracy').textContent = `Accuracy: ${accuracy}`;
+        
+        // Update safety AI with new location
+        safetyAI.updateSafetyDisplay();
         
         // Start continuous tracking
         this.startWatchingLocation();
@@ -154,6 +161,10 @@ const safetyApp = {
         }
         
         this.updateLocationStatus(errorMessage);
+        
+        // Use Pondicherry default location for safety AI
+        this.state.userLocation = { lat: 11.9340, lng: 79.8300 }; // White Town
+        safetyAI.updateSafetyDisplay();
     },
 
     // Start watching location changes
@@ -174,6 +185,9 @@ const safetyApp = {
                     document.getElementById('locationAccuracy').textContent = 
                         `Accuracy: ±${position.coords.accuracy.toFixed(1)}m`;
                 }
+                
+                // Update safety AI with new location
+                safetyAI.updateSafetyDisplay();
             },
             (error) => {
                 console.warn('Location tracking error:', error);
@@ -198,6 +212,8 @@ const safetyApp = {
         }
 
         const emergencyConfig = this.config.emergencyTypes[type];
+        const safetyData = safetyAI.getCurrentSafetyData();
+        
         const emergency = {
             id: Date.now(),
             type: type,
@@ -205,17 +221,21 @@ const safetyApp = {
             location: `${this.state.userLocation.lat.toFixed(6)}, ${this.state.userLocation.lng.toFixed(6)}`,
             timestamp: new Date().toLocaleString(),
             status: 'PENDING',
-            responder: null
+            responder: null,
+            safetyScore: safetyData.score,
+            safetyZone: safetyData.zone,
+            safetyLevel: safetyData.level
         };
 
         this.state.emergencies.unshift(emergency);
         this.updateEmergencyHistory();
 
-        // Show confirmation modal
+        // Show confirmation modal with safety context
         this.showModal(
             'EMERGENCY ALERT SENT',
             `Emergency Type: <strong>${emergencyConfig.name}</strong><br>
              Location: <code>${emergency.location}</code><br>
+             Safety Zone: ${safetyData.zone} (${safetyData.score}/100)<br>
              Time: ${emergency.timestamp}<br><br>
              <span style="color: var(--success);">Emergency services have been notified and help is on the way.</span>`
         );
@@ -223,7 +243,7 @@ const safetyApp = {
         // Update response status
         this.updateResponseStatus('Dispatching emergency response...');
 
-        // Simulate emergency response
+        // Simulate emergency response with safety context
         this.simulateEmergencyResponse(emergency);
     },
 
@@ -238,13 +258,27 @@ const safetyApp = {
                 this.updateEmergencyHistory();
                 this.updateResponseStatus(`Responder assigned: ${emergency.responder}`);
                 
-                // Update risk level if critical
-                if (emergency.type === 'CRITICAL') {
-                    document.querySelector('.risk-level').textContent = 'HIGH';
-                    document.querySelector('.risk-level').style.color = 'var(--danger)';
-                }
+                // Update risk level based on safety score
+                this.updateRiskLevel(emergency.safetyScore);
             }, 2000);
         }, 1000);
+    },
+
+    // Update risk level based on safety score
+    updateRiskLevel(safetyScore) {
+        const riskElement = document.querySelector('.risk-level');
+        if (!riskElement) return;
+        
+        if (safetyScore >= 80) {
+            riskElement.textContent = 'LOW';
+            riskElement.style.color = 'var(--success)';
+        } else if (safetyScore >= 60) {
+            riskElement.textContent = 'MEDIUM';
+            riskElement.style.color = 'var(--warning)';
+        } else {
+            riskElement.textContent = 'HIGH';
+            riskElement.style.color = 'var(--danger)';
+        }
     },
 
     // Update emergency history display
@@ -272,7 +306,8 @@ const safetyApp = {
         historyContainer.innerHTML = this.state.emergencies.map(emergency => `
             <div class="emergency-item">
                 <strong>${emergency.name}</strong><br>
-                <small>Location: ${emergency.location} | Time: ${emergency.timestamp}</small><br>
+                <small>Location: ${emergency.location} | Zone: ${emergency.safetyZone}</small><br>
+                <small>Safety: ${emergency.safetyScore}/100 (${emergency.safetyLevel})</small><br>
                 <small>Status: <span style="color: ${emergency.status === 'PENDING' ? 'var(--warning)' : 'var(--success)'}">
                     ${emergency.status}${emergency.responder ? ` • ${emergency.responder}` : ''}
                 </span></small>
@@ -349,6 +384,16 @@ const safetyApp = {
             this.state.isOnline = false;
             this.updateResponseStatus('Offline - Limited functionality');
         });
+
+        // Map move events for safety updates
+        if (this.state.map) {
+            this.state.map.on('moveend', () => {
+                // Update safety display when map is moved
+                setTimeout(() => {
+                    safetyAI.updateSafetyDisplay();
+                }, 500);
+            });
+        }
     },
 
     // Start metrics updates
@@ -357,6 +402,7 @@ const safetyApp = {
         setInterval(() => {
             const responseTime = document.getElementById('responseTime');
             const activeResponders = document.getElementById('activeResponders');
+            const safetyScore = document.getElementById('safetyScore');
             
             if (responseTime) {
                 responseTime.textContent = (1.5 + Math.random() * 2).toFixed(1) + 's average';
@@ -364,93 +410,47 @@ const safetyApp = {
             if (activeResponders) {
                 activeResponders.textContent = Math.floor(10 + Math.random() * 5) + ' online';
             }
+            if (safetyScore) {
+                // Sync with safety AI score
+                const currentSafety = safetyAI.getCurrentSafetyData();
+                safetyScore.textContent = currentSafety.score;
+            }
         }, 5000);
+    },
+
+    // Get current safety information (for other parts of the app)
+    getSafetyInfo() {
+        return safetyAI.getCurrentSafetyData();
+    },
+
+    // Test function to simulate location in different zones
+    testSafetyZones() {
+        const testZones = [
+            { name: "White Town", lat: 11.9340, lng: 79.8300 },
+            { name: "Industrial Area", lat: 11.9500, lng: 79.8000 },
+            { name: "Beach Promenade", lat: 11.9280, lng: 79.8380 }
+        ];
+        
+        let currentZone = 0;
+        
+        setInterval(() => {
+            const zone = testZones[currentZone];
+            this.state.userLocation = { lat: zone.lat, lng: zone.lng };
+            this.state.map.setView([zone.lat, zone.lng], 15);
+            this.state.userMarker.setLatLng([zone.lat, zone.lng])
+                         .setPopupContent(`Testing: ${zone.name}`);
+            
+            safetyAI.updateSafetyDisplay();
+            
+            currentZone = (currentZone + 1) % testZones.length;
+        }, 10000); // Change zone every 10 seconds
     }
 };
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     safetyApp.init();
+    
+    // Uncomment the line below to test safety zones (for demonstration)
+    // setTimeout(() => safetyApp.testSafetyZones(), 5000);
 });
-// Broadcast to authority dashboard
- const emergencyId = emergencyBroadcaster.broadcastEmergency(emergencyData);
-
-        const emergency = {
-            id: emergencyId,
-            type: type,
-            name: emergencyConfig.name,
-            location: coordinates,
-            timestamp: new Date().toLocaleString(),
-            status: 'ACTIVE',
-            responder: null
-        };
-
-        this.state.emergencies.unshift(emergency);
-        this.updateEmergencyHistory();
-
-        // Show confirmation with live tracking info
-        this.showModal(
-            '🚨 EMERGENCY ALERT SENT',
-            `Emergency Type: <strong>${emergencyConfig.name}</strong><br>
-             Location: <code>${emergency.location}</code><br>
-             Time: ${emergency.timestamp}<br>
-             <span style="color: var(--success);">✓ Live location sharing active</span><br>
-             <span style="color: var(--success);">✓ Nearest responders notified</span>`
-        );
-
-        this.updateResponseStatus('Live location sharing with authorities...');
-
-        // Start live location updates for this emergency
-        this.startLiveLocationSharing(emergencyId);
-    },
-
-    // Start continuous location sharing for active emergency
-    startLiveLocationSharing(emergencyId) {
-        const locationUpdateInterval = setInterval(() => {
-            if (this.state.userLocation) {
-                emergencyBroadcaster.updateEmergency(emergencyId, {
-                    coordinates: `${this.state.userLocation.lat},${this.state.userLocation.lng}`,
-                    lastUpdate: new Date().toISOString()
-                });
-            }
-        }, 5000); // Update every 5 seconds
-
-        // Store interval ID to clear later
-        this.state.activeEmergencyInterval = locationUpdateInterval;
-    },
-
-    // Get approximate address from coordinates
-    getAddressFromCoordinates(coords) {
-        // In real app, you'd use reverse geocoding API
-        return `Near ${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
-    },
-
-    // Generate unique tourist ID
-    getTouristId() {
-        let touristId = localStorage.getItem('touristId');
-        if (!touristId) {
-            touristId = 'TOURIST_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('touristId', touristId);
-        }
-        return touristId;
-    },
-
-    // Get additional emergency information
-    getAdditionalEmergencyInfo(type) {
-        const info = {
-            batteryLevel: navigator.getBattery ? 'Unknown' : 'N/A',
-            networkType: navigator.connection ? navigator.connection.effectiveType : 'Unknown',
-            timestamp: new Date().toISOString()
-        };
-
-        if (type === 'MEDICAL') {
-            info.medicalNotes = 'Automatic medical alert - urgent assistance required';
-        } else if (type === 'CRITICAL') {
-            info.priority = 'HIGHEST';
-        }
-
-        return info;
-    },
-
-    // ... rest of existing code ...
-};
