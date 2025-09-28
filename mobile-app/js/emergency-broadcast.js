@@ -98,30 +98,45 @@ class EmergencyBroadcast {
         this.activeTrackers.delete(emergencyId);
     }
 
-    // Enhanced emergency update
-    updateEmergency(emergencyId, updates) {
-        const emergencies = this.getEmergencies();
-        const emergencyIndex = emergencies.findIndex(e => e.id === emergencyId);
-        
-        if (emergencyIndex !== -1) {
-            Object.assign(emergencies[emergencyIndex], updates);
-            emergencies[emergencyIndex].lastUpdate = new Date().toISOString();
-            
-            emergencies[emergencyIndex].updates.push({
-                timestamp: new Date().toISOString(),
-                message: updates.status || 'Status updated',
-                type: 'system'
-            });
+   // In emergency-broadcast.js - Enhanced for live tracking
+class EmergencyBroadcast {
+    // ... existing code ...
 
-            // Stop tracking if emergency is resolved
-            if (updates.status === 'resolved') {
-                this.stopLiveTracking(emergencyId);
-            }
+    // Method to update tourist location (called from tourist app)
+    updateTouristLocation(emergencyId, newCoordinates) {
+        const emergency = this.getEmergency(emergencyId);
+        if (emergency) {
+            emergency.coordinates = newCoordinates;
+            emergency.lastUpdate = new Date().toISOString();
             
-            this.saveEmergencies(emergencies);
-            this.notifyListeners(emergencies[emergencyIndex], 'update');
+            // Broadcast location update to authority dashboard
+            this.broadcastToAuthorities(emergency, 'location_update');
         }
     }
+
+    // Enhanced emergency creation with live tracking
+    createEmergency(emergencyData) {
+        const emergency = {
+            id: Date.now(),
+            type: emergencyData.type,
+            title: emergencyData.title,
+            location: emergencyData.location,
+            coordinates: emergencyData.coordinates,
+            timestamp: new Date().toISOString(),
+            time: new Date().toLocaleTimeString(),
+            status: 'active',
+            tourist: emergencyData.tourist,
+            phone: emergencyData.phone,
+            touristId: emergencyData.touristId,
+            lastUpdate: new Date().toISOString()
+        };
+
+        this.activeEmergencies.push(emergency);
+        this.broadcastToAuthorities(emergency, 'new');
+        
+        return emergency;
+    }
+}
 
     // Get active emergencies
     getActiveEmergencies() {
