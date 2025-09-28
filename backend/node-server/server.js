@@ -6,6 +6,8 @@ const socketIo = require('socket.io');
 const redis = require('redis');
 require('dotenv').config();
 
+const PORT = process.env.PORT || 5000; // <-- MOVE THIS UP
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -23,13 +25,9 @@ const redisClient = redis.createClient({
 // Middleware
 app.use(cors());
 app.use(express.json());
-// COMMENTED OUT TEMPORARILY:
-// mongoose.connect(process.env.MONGODB_URI, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true
-// });
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/safety-app', {
+
+// MongoDB Atlas Connection
+mongoose.connect("mongodb+srv://sharmisubramanian13_db_user:JHJh1qKE4vSMJub1@cluster0.sihj7jv.mongodb.net/smart-safety?retryWrites=true&w=majority&appName=Cluster0", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -83,17 +81,11 @@ app.use('/api/safety', require('./routes/safety'));
 app.use('/api/analytics', require('./routes/analytics'));
 
 // Health check
-// Add this route to test if server works
 app.get('/', (req, res) => {
-  res.json({ message: 'Server is running without database!' });
+  res.json({ message: 'Server is running!' });
 });
 
-// This should already be at the bottom - don't change it
-app.listen(PORT, () => {
-  console.log(`📌 Backend server running on port ${PORT}`);
-});
-// Start server
-const PORT = process.env.PORT || 5000;
+// Start server - KEEP ONLY THIS ONE
 server.listen(PORT, () => {
   console.log(`🚀 Backend server running on port ${PORT}`);
   console.log(`📊 MongoDB: ${mongoose.connection.readyState === 1 ? 'Connected' : 'Connecting...'}`);
