@@ -452,5 +452,5 @@ document.addEventListener('DOMContentLoaded', () => {
     safetyApp.init();
     
     // Uncomment the line below to test safety zones (for demonstration)
-    // setTimeout(() => safetyApp.testSafetyZones(), 5000);
+     setTimeout(() => safetyApp.testSafetyZones(), 5000);
 });
