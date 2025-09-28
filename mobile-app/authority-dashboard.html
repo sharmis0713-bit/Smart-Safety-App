@@ -274,49 +274,72 @@
             </div>
         </div>
     </div>
-// Authentication check for authority dashboard
+<script>
+    // SIMPLE AUTH BYPASS - FOR TESTING
+    function checkAuthorityAuthentication() {
+        console.log('Auth check running...');
+        
+        // Auto-login for testing
+        sessionStorage.setItem('isLoggedIn', 'true');
+        sessionStorage.setItem('userType', 'authority');
+        sessionStorage.setItem('userId', 'Emergency Response Unit');
+        
+        // Immediately show dashboard
+        const authOverlay = document.getElementById('authOverlay');
+        const dashboardContent = document.getElementById('dashboardContent');
+        
+        if (authOverlay) {
+            authOverlay.style.display = 'none';
+            console.log('Auth overlay hidden');
+        }
+        if (dashboardContent) {
+            dashboardContent.style.display = 'block';
+            console.log('Dashboard shown');
+        }
+        
+        // Update authority name
+        const authorityNameElement = document.getElementById('authorityName');
+        if (authorityNameElement) {
+            authorityNameElement.textContent = 'Emergency Response Unit';
+        }
+        
+        console.log('Dashboard loaded successfully');
+    }
+    
+    function goToLogin() {
+        sessionStorage.clear();
+        window.location.href = 'index.html';
+    }
+    
+    function logout() {
+        sessionStorage.clear();
+        window.location.href = 'index.html';
+    }
+    
+    // Run when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, starting auth check...');
+        checkAuthorityAuthentication();
+    });
+    
+    // Also run on window load as backup
+    window.addEventListener('load', function() {
+        console.log('Window loaded, final auth check...');
+        checkAuthorityAuthentication();
+    });
+</script>
     <script>
-function checkAuthorityAuthentication() {
-    // TEMPORARY FIX: Auto-login for testing
-    sessionStorage.setItem('isLoggedIn', 'true');
-    sessionStorage.setItem('userType', 'authority');
-    sessionStorage.setItem('userId', 'Emergency Response Unit');
-    
-    const isLoggedIn = sessionStorage.getItem('isLoggedIn');
-    const userType = sessionStorage.getItem('userType');
-    const userId = sessionStorage.getItem('userId');
-    
-    console.log('Auth check:', { isLoggedIn, userType, userId }); // Debug log
-    
-    if (isLoggedIn === 'true' && userType === 'authority' && userId) {
-        // User is authenticated as authority - hide auth overlay and show dashboard
+    // ULTRA SIMPLE FIX - Remove auth completely
+    document.addEventListener('DOMContentLoaded', function() {
+        // Hide auth overlay immediately
         const authOverlay = document.getElementById('authOverlay');
         const dashboardContent = document.getElementById('dashboardContent');
         
         if (authOverlay) authOverlay.style.display = 'none';
         if (dashboardContent) dashboardContent.style.display = 'block';
         
-        // Update authority name if element exists
-        const authorityNameElement = document.getElementById('authorityName');
-        if (authorityNameElement) {
-            authorityNameElement.textContent = userId;
-        }
-        
-        console.log('Authority authenticated successfully');
-    } else {
-        // Not authenticated - show error and redirect option
-        const authMessage = document.getElementById('authMessage');
-        if (authMessage) {
-            authMessage.innerHTML = `
-                <p style="color: #f44336; margin: 15px 0;">Access denied. Please login as Authority first.</p>
-                <button onclick="goToLogin()" style="background: #1a2a6c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                    Go to Login
-                </button>
-            `;
-        }
-        console.log('Authentication failed');
-    }
-}
-        </script>
+        console.log('Dashboard loaded without authentication');
+    });
+</script>
 </body>
 </html>
