@@ -214,6 +214,99 @@
             font-weight: 500;
         }
         
+        /* Dashboard Styles */
+        .dashboard {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, #1a2a6c, #2a3a8c);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dashboard-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .dashboard-content {
+            padding: 30px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .card {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #1a2a6c;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #1a2a6c;
+            padding-bottom: 5px;
+        }
+        
+        .alert {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .alert.warning {
+            background: #fff8e1;
+            border-left-color: #ffc107;
+        }
+        
+        .alert.info {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -222,11 +315,16 @@
             .left-panel, .right-panel {
                 padding: 30px;
             }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Login Page -->
+    <div class="container" id="loginPage">
         <div class="left-panel">
             <div class="logo">SafeTravel Guardian</div>
             <div class="tagline">Secure access to your safety dashboard</div>
@@ -246,8 +344,8 @@
             </div>
             
             <div class="toggle-buttons">
-                <button class="toggle-btn">Tours!</button>
-                <button class="toggle-btn active">Authority</button>
+                <button class="toggle-btn" id="touristBtn">Tourist</button>
+                <button class="toggle-btn active" id="authorityBtn">Authority</button>
             </div>
             
             <form id="loginForm">
@@ -287,7 +385,130 @@
         </div>
     </div>
 
+    <!-- Authority Dashboard -->
+    <div class="dashboard" id="authorityDashboard">
+        <div class="dashboard-header">
+            <div class="dashboard-title">Authority Dashboard - SafeTravel Guardian</div>
+            <div class="user-info">
+                <span>Welcome, Authority User (AUTH-001)</span>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
+        </div>
+        
+        <div class="dashboard-content">
+            <div class="alert info">
+                <strong>System Status:</strong> All systems operational. Monitoring 247 active travelers.
+            </div>
+            
+            <h2>Emergency Management</h2>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Active Alerts</h3>
+                    <p>3 high-priority alerts</p>
+                    <ul>
+                        <li>Weather warning - Region D</li>
+                        <li>Security incident - City Center</li>
+                        <li>Transport disruption - Highway 5</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>Traveler Monitoring</h3>
+                    <p>247 travelers being monitored</p>
+                    <ul>
+                        <li>231 in safe zones</li>
+                        <li>12 in caution zones</li>
+                        <li>4 requiring assistance</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>Emergency Contacts</h3>
+                    <p>Recent communications</p>
+                    <ul>
+                        <li>12 messages sent</li>
+                        <li>8 responses received</li>
+                        <li>3 calls initiated</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>Incident Reports</h3>
+                    <p>Today's activity</p>
+                    <ul>
+                        <li>5 new incidents reported</li>
+                        <li>3 incidents resolved</li>
+                        <li>2 investigations ongoing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tourist Dashboard -->
+    <div class="dashboard" id="touristDashboard">
+        <div class="dashboard-header">
+            <div class="dashboard-title">Tourist Dashboard - SafeTravel Guardian</div>
+            <div class="user-info">
+                <span>Welcome, Tourist User</span>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
+        </div>
+        
+        <div class="dashboard-content">
+            <div class="alert warning">
+                <strong>Travel Advisory:</strong> Exercise caution in downtown areas after 10 PM.
+            </div>
+            
+            <h2>Your Safety Overview</h2>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Current Location</h3>
+                    <p>You are in a safe zone</p>
+                    <ul>
+                        <li>Low risk area</li>
+                        <li>Emergency services: 5 min</li>
+                        <li>SafeTravel partners nearby</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>Travel Alerts</h3>
+                    <p>Active in your area</p>
+                    <ul>
+                        <li>Weather: Clear</li>
+                        <li>Transport: Normal</li>
+                        <li>Security: Low risk</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>Emergency Contacts</h3>
+                    <p>Ready to assist</p>
+                    <ul>
+                        <li>Local police: 911</li>
+                        <li>SafeTravel hotline: 24/7</li>
+                        <li>Embassy: 10 km away</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>Safety Check-Ins</h3>
+                    <p>Last check-in: 2 hours ago</p>
+                    <ul>
+                        <li>Next due: 4 hours</li>
+                        <li>Auto-checkin: Enabled</li>
+                        <li>Contacts notified: 3</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Current user type
+        let userType = 'authority';
+        
         // Toggle password visibility
         document.querySelector('.password-toggle').addEventListener('click', function() {
             const passwordField = document.getElementById('password');
@@ -300,21 +521,58 @@
             }
         });
         
-        // Toggle between Tours and Authority
-        document.querySelectorAll('.toggle-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                document.querySelectorAll('.toggle-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                this.classList.add('active');
-            });
+        // Toggle between Tourist and Authority
+        document.getElementById('touristBtn').addEventListener('click', function() {
+            document.getElementById('touristBtn').classList.add('active');
+            document.getElementById('authorityBtn').classList.remove('active');
+            userType = 'tourist';
+            document.getElementById('authorityId').value = 'TOUR-';
+        });
+        
+        document.getElementById('authorityBtn').addEventListener('click', function() {
+            document.getElementById('authorityBtn').classList.add('active');
+            document.getElementById('touristBtn').classList.remove('active');
+            userType = 'authority';
+            document.getElementById('authorityId').value = 'AUTH-001';
         });
         
         // Form submission
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Login attempt recorded. Access would be verified in a real system.');
+            
+            const password = document.getElementById('password').value;
+            const securityCode = document.getElementById('securityCode').value;
+            
+            // Simple validation
+            if (!password || !securityCode) {
+                alert('Please enter both password and security code');
+                return;
+            }
+            
+            // Hide login page
+            document.getElementById('loginPage').style.display = 'none';
+            
+            // Show appropriate dashboard based on user type
+            if (userType === 'authority') {
+                document.getElementById('authorityDashboard').style.display = 'block';
+            } else {
+                document.getElementById('touristDashboard').style.display = 'block';
+            }
         });
+        
+        // Logout function
+        function logout() {
+            // Hide all dashboards
+            document.getElementById('authorityDashboard').style.display = 'none';
+            document.getElementById('touristDashboard').style.display = 'none';
+            
+            // Show login page
+            document.getElementById('loginPage').style.display = 'flex';
+            
+            // Reset form
+            document.getElementById('loginForm').reset();
+            document.getElementById('authorityId').value = 'AUTH-001';
+        }
     </script>
 </body>
 </html>
