@@ -24,7 +24,7 @@
                 </div>
             </div>
         </header>
-        
+
         <!-- Main Content Grid -->
         <main class="content-grid">
             <!-- Map Section -->
@@ -215,55 +215,8 @@
             </div>
         </div>
     </div>
-<script>
-    // Authentication check for tourist dashboard
-    function checkTouristAuthentication() {
-        const isLoggedIn = sessionStorage.getItem('isLoggedIn');
-        const userType = sessionStorage.getItem('userType');
-        const userId = sessionStorage.getItem('userId');
-        
-        console.log('Tourist auth check:', { isLoggedIn, userType, userId }); // Debug log
-        
-        if (isLoggedIn === 'true' && userType === 'tourist' && userId) {
-            // User is authenticated as tourist
-            console.log('Tourist authenticated:', userId);
-            
-            // Update user welcome message if element exists
-            const welcomeElement = document.querySelector('.user-welcome');
-            if (welcomeElement) {
-                welcomeElement.textContent = `Welcome, ${userId}`;
-            }
-        } else {
-            // Not authenticated - redirect to login
-            alert('Please login as Tourist first');
-            window.location.href = 'index.html';
-        }
-    }
-    
-    // Add logout function to your existing authSystem
-    if (typeof authSystem !== 'undefined') {
-        // Override or add logout function
-        const originalLogout = authSystem.logout;
-        authSystem.logout = function() {
-            sessionStorage.clear();
-            if (originalLogout) originalLogout();
-            window.location.href = 'index.html';
-        };
-    } else {
-        // Create authSystem if it doesn't exist
-        window.authSystem = {
-            logout: function() {
-                sessionStorage.clear();
-                window.location.href = 'index.html';
-            }
-        };
-    }
-    
-    // Check authentication when page loads
-    window.addEventListener('load', checkTouristAuthentication);
-</script>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/emergency-broadcast.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/tourist-app.js"></script>
     <script src="js/safety-ai.js"></script> <!-- ADD THIS LINE -->
