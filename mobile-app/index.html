@@ -187,14 +187,14 @@
             <p style="color: #666; margin-bottom: 20px;">Enter your credentials to access your account</p>
             
             <div class="user-type-selector">
-                <button class="user-type-btn" id="touristBtn">Tourist</button>
-                <button class="user-type-btn active" id="authorityBtn">Authority</button>
+                <button class="user-type-btn active" id="touristBtn">Tourist</button>
+                <button class="user-type-btn" id="authorityBtn">Authority</button>
             </div>
             
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="authorityId">Authority ID</label>
-                    <input type="text" id="authorityId" class="form-control" value="AUTH-001">
+                    <label for="authorityId">Tourist ID</label>
+                    <input type="text" id="authorityId" class="form-control" value="TOUR-001">
                 </div>
                 
                 <div class="form-group">
@@ -232,7 +232,7 @@
 
     <script>
         // Current user type
-        let userType = 'authority';
+        let userType = 'tourist';
         
         // Toggle password visibility
         document.querySelector('.password-toggle').addEventListener('click', function() {
@@ -252,6 +252,7 @@
             document.getElementById('authorityBtn').classList.remove('active');
             userType = 'tourist';
             document.getElementById('authorityId').value = 'TOUR-001';
+            document.querySelector('.form-group label[for="authorityId"]').textContent = 'Tourist ID';
         });
         
         document.getElementById('authorityBtn').addEventListener('click', function() {
@@ -259,6 +260,7 @@
             document.getElementById('touristBtn').classList.remove('active');
             userType = 'authority';
             document.getElementById('authorityId').value = 'AUTH-001';
+            document.querySelector('.form-group label[for="authorityId"]').textContent = 'Authority ID';
         });
         
         // Form submission
@@ -275,7 +277,7 @@
             }
             
             // Store login info in sessionStorage for the dashboard to use
-            sessionStorage.setItem('authorityId', document.getElementById('authorityId').value);
+            sessionStorage.setItem('userId', document.getElementById('authorityId').value);
             sessionStorage.setItem('userType', userType);
             sessionStorage.setItem('isLoggedIn', 'true');
             
