@@ -24,7 +24,49 @@
                 </div>
             </div>
         </header>
-
+<script>
+    // Authentication check for tourist dashboard
+    function checkTouristAuthentication() {
+        const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+        const userType = sessionStorage.getItem('userType');
+        const userId = sessionStorage.getItem('userId');
+        
+        if (isLoggedIn === 'true' && userType === 'tourist' && userId) {
+            // User is authenticated as tourist
+            console.log('Tourist authenticated:', userId);
+            
+            // Update user welcome message if element exists
+            const welcomeElement = document.querySelector('.user-welcome');
+            if (welcomeElement) {
+                welcomeElement.textContent = `Welcome, ${userId}`;
+            }
+        } else {
+            // Not authenticated - redirect to login
+            alert('Please login as Tourist first');
+            window.location.href = 'index.html';
+        }
+    }
+    
+    // Add logout function to your existing authSystem
+    if (typeof authSystem !== 'undefined') {
+        // Override or add logout function
+        authSystem.logout = function() {
+            sessionStorage.clear();
+            window.location.href = 'index.html';
+        };
+    } else {
+        // Create authSystem if it doesn't exist
+        window.authSystem = {
+            logout: function() {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            }
+        };
+    }
+    
+    // Check authentication when page loads
+    window.addEventListener('load', checkTouristAuthentication);
+</script>
         <!-- Main Content Grid -->
         <main class="content-grid">
             <!-- Map Section -->
