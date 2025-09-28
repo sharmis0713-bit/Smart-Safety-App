@@ -867,3 +867,139 @@ status-assigned { color: #28a745; font-weight: bold; }
 .empty-state small {
     font-size: 0.9rem;
 }
+/* Live Tracking Styles */
+.live-tracker-marker {
+    animation: pulse 2s infinite;
+}
+
+.live-marker-pulse {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.live-marker-inner {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    z-index: 2;
+    position: relative;
+}
+
+.live-marker-pulse::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: inherit;
+    animation: live-pulse 2s infinite;
+    z-index: 1;
+}
+
+@keyframes live-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.live-tracking-popup {
+    min-width: 300px;
+}
+
+.live-tracking-badge {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: bold;
+    animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.7; }
+}
+
+.emergency-item.live-tracking {
+    border-left: 4px solid #ff6b6b;
+    background: linear-gradient(90deg, #fff5f5, white);
+}
+
+.live-indicator {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #ff6b6b;
+    border-radius: 50%;
+    animation: blink 1s infinite;
+}
+
+.live-badge {
+    background: #ff6b6b;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+.active-badge {
+    background: #4ecdc4;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+.emergency-meta {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.emergency-meta small {
+    font-size: 11px;
+    color: #666;
+}
+
+.emergency-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.track-btn {
+    background: #4ecdc4;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.track-btn:hover {
+    background: #45b7af;
+}
