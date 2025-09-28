@@ -306,11 +306,19 @@
             
             // Redirect to appropriate dashboard based on user type
             if (userType === 'authority') {
-                // Redirect to your existing authority website
-                window.location.href = 'authority-dashboard.html'; // Replace with your actual authority page URL
+                // Store login info in localStorage for the dashboard to use
+                localStorage.setItem('authorityId', document.getElementById('authorityId').value);
+                localStorage.setItem('userType', 'authority');
+                
+                // Redirect to authority dashboard
+                window.location.href = 'authority-dashboard.html';
             } else {
-                // Redirect to your existing tourist website
-                window.location.href = 'tourist-dashboard.html'; // Replace with your actual tourist page URL
+                // Store login info in localStorage for the dashboard to use
+                localStorage.setItem('authorityId', document.getElementById('authorityId').value);
+                localStorage.setItem('userType', 'tourist');
+                
+                // Redirect to tourist dashboard
+                window.location.href = 'tourist-dashboard.html';
             }
         });
     </script>
