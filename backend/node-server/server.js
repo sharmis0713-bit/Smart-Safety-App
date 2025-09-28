@@ -27,7 +27,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Atlas Connection
-mongoose.connect("mongodb+srv://sharmisubramanian13_db_user:JHJh1qKE4vSMJub1@cluster0.sihj7jv.mongodb.net/smart-safety?retryWrites=true&w=majority&appName=Cluster0", {
+mongoose.connect("mongodb+srv://sharmisubramanian13_db_user:JHJh1qKE4vSMJub1@cluster0.sihj7jv.mongodb.net/smart-safety?retryWrites=true&w=majority", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
