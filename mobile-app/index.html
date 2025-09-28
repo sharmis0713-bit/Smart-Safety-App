@@ -173,28 +173,6 @@
             text-decoration: none;
             font-weight: 500;
         }
-        
-        .demo-credentials {
-            background: #e8f4fd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-            font-size: 13px;
-        }
-        
-        .demo-credentials h4 {
-            margin-bottom: 10px;
-            color: #1a2a6c;
-        }
-        
-        .demo-credentials ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        
-        .demo-credentials li {
-            margin-bottom: 5px;
-        }
     </style>
 </head>
 <body>
@@ -222,14 +200,14 @@
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="password-field">
-                        <input type="password" id="password" class="form-control" placeholder="Enter your password">
+                        <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
                         <button type="button" class="password-toggle">👁️</button>
                     </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="securityCode">Security Code</label>
-                    <input type="text" id="securityCode" class="form-control" placeholder="Enter security code">
+                    <input type="text" id="securityCode" class="form-control" placeholder="Enter security code" required>
                 </div>
                 
                 <div class="checkbox-group">
@@ -245,14 +223,6 @@
                     Authorized personnel only. All access is monitored.
                 </div>
             </form>
-            
-            <div class="demo-credentials">
-                <h4>Demo Credentials:</h4>
-                <ul>
-                    <li><strong>Authority:</strong> Any password + security code</li>
-                    <li><strong>Tourist:</strong> Any password + security code</li>
-                </ul>
-            </div>
             
             <div class="signup-link">
                 Don't have an account? <a href="#">Sign Up</a>
@@ -304,21 +274,36 @@
                 return;
             }
             
+            // Store login info in sessionStorage for the dashboard to use
+            sessionStorage.setItem('authorityId', document.getElementById('authorityId').value);
+            sessionStorage.setItem('userType', userType);
+            sessionStorage.setItem('isLoggedIn', 'true');
+            
+            // Show loading state
+            const loginBtn = document.querySelector('.btn-login');
+            const originalText = loginBtn.textContent;
+            loginBtn.textContent = 'Redirecting...';
+            loginBtn.disabled = true;
+            
             // Redirect to appropriate dashboard based on user type
-            if (userType === 'authority') {
-                // Store login info in localStorage for the dashboard to use
-                localStorage.setItem('authorityId', document.getElementById('authorityId').value);
-                localStorage.setItem('userType', 'authority');
-                
-                // Redirect to authority dashboard
-                window.location.href = 'authority-dashboard.html';
-            } else {
-                // Store login info in localStorage for the dashboard to use
-                localStorage.setItem('authorityId', document.getElementById('authorityId').value);
-                localStorage.setItem('userType', 'tourist');
-                
-                // Redirect to tourist dashboard
-                window.location.href = 'tourist-dashboard.html';
+            setTimeout(() => {
+                if (userType === 'authority') {
+                    window.location.href = 'authority-dashboard.html';
+                } else {
+                    window.location.href = 'tourist-dashboard.html';
+                }
+            }, 1000);
+        });
+        
+        // Check if already logged in
+        window.addEventListener('load', function() {
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                const userType = sessionStorage.getItem('userType');
+                if (userType === 'authority') {
+                    window.location.href = 'authority-dashboard.html';
+                } else {
+                    window.location.href = 'tourist-dashboard.html';
+                }
             }
         });
     </script>
