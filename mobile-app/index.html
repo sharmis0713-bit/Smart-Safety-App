@@ -3,135 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafeTravel Guardian • Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>SafeTravel Guardian - Login</title>
+    <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/login.css">
 </head>
 <body>
     <div class="login-container">
-        <!-- Left Side - Branding -->
-        <div class="login-branding">
-            <div class="brand-content">
-                <div class="logo">
-                    <div class="logo-icon">🛡️</div>
-                    <h1>SafeTravel Guardian</h1>
-                </div>
-                <p class="brand-tagline">Secure access to your safety dashboard</p>
-            </div>
+        <div class="login-header">
+            <h1>🛡️ SafeTravel Guardian</h1>
+            <p>Secure access to your safety dashboard</p>
         </div>
-
-        <!-- Right Side - Login Form -->
-        <div class="login-form-section">
-            <div class="form-container">
-                <div class="form-header">
-                    <h2>Login to SafeTravel</h2>
-                    <p>Enter your credentials to access your account</p>
-                </div>
-
+        
+        <div class="login-card">
+            <h2>Login to SafeTravel</h2>
+            <p class="login-subtitle">Enter your credentials to access your account</p>
+            
+            <form id="loginForm" class="login-form">
                 <!-- User Type Selection -->
-                <div class="user-type-selector">
-                    <button class="user-type-btn active" data-type="tourist">
-                        <span class="user-icon">👤</span>
-                        Tourist
-                    </button>
-                    <button class="user-type-btn" data-type="authority">
-                        <span class="user-icon">👮</span>
-                        Authority
-                    </button>
+                <div class="user-type-selection">
+                    <label class="user-type-option">
+                        <input type="radio" name="userType" value="tourist" id="touristType">
+                        <span class="radio-checkmark"></span>
+                        <span class="user-type-label">
+                            <span class="user-icon">👤</span>
+                            Tourist
+                        </span>
+                    </label>
+                    <label class="user-type-option">
+                        <input type="radio" name="userType" value="authority" id="authorityType" checked>
+                        <span class="radio-checkmark"></span>
+                        <span class="user-type-label">
+                            <span class="user-icon">👮</span>
+                            Authority
+                        </span>
+                    </label>
                 </div>
 
-                <!-- Tourist Login Form -->
-                <form class="login-form active" id="touristLoginForm">
-                    <div class="input-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" placeholder="email@service.com" value="tourist@demo.com" required>
-                    </div>
+                <!-- Authority ID Field -->
+                <div class="form-group" id="authorityIdGroup">
+                    <label for="authorityId">Authority ID</label>
+                    <input type="text" id="authorityId" name="authorityId" 
+                           placeholder="AUTH-001" value="AUTH-001">
+                </div>
 
-                    <div class="input-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" placeholder="Enter your password" value="password123" required>
-                    </div>
+                <!-- Tourist ID Field (Hidden by default) -->
+                <div class="form-group hidden" id="touristIdGroup">
+                    <label for="touristId">Tourist ID</label>
+                    <input type="text" id="touristId" name="touristId" 
+                           placeholder="TOUR-001">
+                </div>
 
-                    <div class="form-options">
-                        <label class="checkbox">
-                            <input type="checkbox" id="rememberMe">
-                            <span class="checkmark"></span>
-                            Remember Me
-                        </label>
-                        <a href="#" class="forgot-password">Forgot Password?</a>
-                    </div>
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" 
+                           placeholder="Enter your password" required>
+                </div>
 
-                    <button type="submit" class="login-btn primary">
-                        Login to Dashboard
-                    </button>
+                <!-- Security Code Field -->
+                <div class="form-group">
+                    <label for="securityCode">Security Code</label>
+                    <input type="password" id="securityCode" name="securityCode" 
+                           placeholder="Enter security code" required>
+                </div>
 
-                    <div class="divider">
-                        <span>or continue with</span>
-                    </div>
-
-                    <button type="button" class="login-btn google">
-                        <span class="google-icon">🔍</span>
-                        Login with Google
-                    </button>
-                </form>
-
-                <!-- Authority Login Form -->
-                <form class="login-form" id="authorityLoginForm">
-                    <div class="input-group">
-                        <label for="authorityId">Authority ID</label>
-                        <input type="text" id="authorityId" placeholder="AUTH-XXXX-XXXX" value="AUTH-001" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="authPassword">Password</label>
-                        <input type="password" id="authPassword" placeholder="Enter your password" value="auth123" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="securityCode">Security Code</label>
-                        <input type="password" id="securityCode" placeholder="Enter security code" value="7890" required>
-                    </div>
-
-                    <div class="form-options">
-                        <label class="checkbox">
-                            <input type="checkbox" id="rememberAuth">
-                            <span class="checkmark"></span>
-                            Remember This Device
-                        </label>
-                    </div>
-
-                    <button type="submit" class="login-btn primary">
+                <!-- Checkbox Options -->
+                <div class="checkbox-group">
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="rememberDevice" name="rememberDevice">
+                        <span class="checkmark"></span>
+                        Remember This Device
+                    </label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="emergencyDashboard" name="emergencyDashboard" checked>
+                        <span class="checkmark"></span>
                         Access Emergency Dashboard
-                    </button>
-
-                    <div class="security-notice">
-                        <span class="notice-icon">⚠️</span>
-                        Authorized personnel only. All access is monitored.
-                    </div>
-                </form>
-
-                <div class="form-footer">
-                    <p>Don't have an account? <a href="#" class="signup-link">Sign Up</a></p>
-                    
-                    <div class="demo-credentials">
-                        <details>
-                            <summary>Demo Credentials</summary>
-                            <div class="demo-info">
-                                <div class="demo-section">
-                                    <strong>Tourist Demo:</strong>
-                                    <p>Email: tourist@demo.com</p>
-                                    <p>Password: password123</p>
-                                </div>
-                                <div class="demo-section">
-                                    <strong>Authority Demo:</strong>
-                                    <p>ID: AUTH-001</p>
-                                    <p>Password: auth123</p>
-                                    <p>Code: 7890</p>
-                                </div>
-                            </div>
-                        </details>
-                    </div>
+                    </label>
                 </div>
+
+                <!-- Security Notice -->
+                <div class="security-notice">
+                    <p>⚠️ Authorized personnel only. All access is monitored.</p>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    🔐 Login to Safety System
+                </button>
+            </form>
+            
+            <!-- Demo Credentials -->
+            <div class="demo-credentials">
+                <h3>Demo Credentials:</h3>
+                <div class="credential-section">
+                    <h4>👮 Authority Access:</h4>
+                    <p><strong>ID:</strong> AUTH-001 | <strong>Password:</strong> demo123 | <strong>Security Code:</strong> 1234</p>
+                </div>
+                <div class="credential-section">
+                    <h4>👤 Tourist Access:</h4>
+                    <p><strong>ID:</strong> TOUR-001 | <strong>Password:</strong> demo123 | <strong>Security Code:</strong> 1234</p>
+                </div>
+            </div>
+
+            <!-- Sign Up Link -->
+            <div class="signup-link">
+                <p>Don't have an account? <a href="#" id="signupLink">Sign Up</a></p>
             </div>
         </div>
     </div>
