@@ -448,40 +448,45 @@ class AuthorityApp {
         return icons[type] || '⚠️';
     }
 
-    updateEmergencyDisplay() {
-        const container = document.getElementById('emergenciesContainer');
-        const activeCount = this.emergencies.filter(e => e.status === 'active').length;
+    // ✅ CORRECT CODE - Add this to your authority-app.js
+updateEmergencyDisplay() {
+    const container = document.getElementById('emergenciesContainer');
+    const activeCount = this.emergencies.filter(e => e.status === 'active').length;
 
-        // Update stats
-        document.getElementById('activeEmergencies').textContent = activeCount;
-        document.getElementById('respondersOnline').textContent = this.responders.length;
-        document.getElementById('avgResponseTime').textContent = '4.2s';
-        document.getElementById('resolvedToday').textContent = this.emergencies.filter(e => e.status === 'resolved').length;
+    // Update stats
+    document.getElementById('activeEmergencies').textContent = activeCount;
+    document.getElementById('respondersOnline').textContent = this.responders.length;
+    document.getElementById('avgResponseTime').textContent = '4.2s';
+    document.getElementById('resolvedToday').textContent = this.emergencies.filter(e => e.status === 'resolved').length;
 
-        if (this.emergencies.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <p>No active emergencies</p>
-                    <small>All systems monitoring normally</small>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = this.emergencies.map(emergency => `
-            <div class="emergency-item ${emergency.type}" onclick="authorityApp.viewEmergencyDetails(${emergency.id})">
-                <div class="emergency-icon">${this.getEmergencyIcon(emergency.type)}</div>
-                <div class="emergency-info">
-                    <h4>${emergency.title || emergency.type + ' Emergency'}</h4>
-                    <p>${emergency.location}</p>
-                    <small>Reported: ${new Date(emergency.timestamp || emergency.time).toLocaleTimeString()}</small>
-                </div>
-                <div class="emergency-status ${emergency.status}">
-                    ${emergency.status.toUpperCase()}
-                </div>
+    if (this.emergencies.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <p>No active emergencies</p>
+                <small>All systems monitoring normally</small>
             </div>
-        `).join('');
+        `;
+        return;
     }
+
+    container.innerHTML = this.emergencies.map(emergency => `
+        <div class="emergency-item ${emergency.type} ${emergency.status === 'active' ? 'tracking-active' : ''}" 
+             onclick="authorityApp.viewEmergencyDetails(${emergency.id})">
+            <div class="emergency-icon">${this.getEmergencyIcon(emergency.type)}</div>
+            <div class="emergency-info">
+                <h4>${emergency.title || emergency.type + ' Emergency'} 
+                    ${emergency.status === 'active' ? '<span class="live-badge">LIVE</span>' : ''}
+                </h4>
+                <p>${emergency.location}</p>
+                <small>📡 Last update: ${emergency.lastUpdate ? 
+                    new Date(emergency.lastUpdate).toLocaleTimeString() : 'Just now'}</small>
+            </div>
+            <div class="emergency-status ${emergency.status}">
+                ${emergency.status.toUpperCase()}
+            </div>
+        </div>
+    `).join('');
+}
 
     updateResponderDisplay() {
         const availableCount = this.responders.filter(r => r.status === 'online').length;
