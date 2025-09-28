@@ -20,7 +20,239 @@ class AuthorityApp {
         
         console.log('Authority Dashboard - Live SOS Feed Active');
     }
+        // Initialize live tracking for emergencies
+    initializeLiveTracking() {
+        // Set up interval to update live positions
+        setInterval(() => {
+            this.updateLivePositions();
+        }, 3000); // Update every 3 seconds
+    }
 
+    // Update emergency markers with live positions
+    updateLivePositions() {
+        this.emergencies.forEach(emergency => {
+            if (emergency.status === 'active' && this.liveTracks.has(emergency.id)) {
+                this.updateEmergencyMarker(emergency);
+            }
+        });
+    }
+
+    // Enhanced marker update with movement animation
+    updateEmergencyMarker(emergency) {
+        const marker = this.emergencyMarkers.get(emergency.id);
+        if (marker) {
+            let coordinates;
+            
+            if (Array.isArray(emergency.coordinates)) {
+                coordinates = emergency.coordinates;
+            } else if (typeof emergency.coordinates === 'string') {
+                coordinates = emergency.coordinates.split(',').map(Number);
+            } else {
+                return;
+            }
+            
+            // Smooth animation for movement
+            marker.setLatLng(coordinates, {
+                duration: 1000,
+                easeLinearity: 0.25
+            });
+            
+            // Update popup with latest info
+            marker.setPopupContent(this.createEmergencyPopup(emergency));
+            
+            // Add movement trail/polyline
+            this.updateMovementTrail(emergency.id, coordinates);
+        }
+    }
+
+    // Create movement trail for tourists
+    updateMovementTrail(emergencyId, newCoords) {
+        if (!this.liveTracks.has(emergencyId)) {
+            // Create new trail
+            const polyline = L.polyline([newCoords], {
+                color: this.getMarkerColor(this.emergencies.find(e => e.id === emergencyId)?.type),
+                weight: 3,
+                opacity: 0.7,
+                smoothFactor: 1
+            }).addTo(this.map);
+            
+            this.liveTracks.set(emergencyId, {
+                polyline: polyline,
+                path: [newCoords]
+            });
+        } else {
+            // Update existing trail
+            const track = this.liveTracks.get(emergencyId);
+            track.path.push(newCoords);
+            
+            // Keep only last 10 positions for trail
+            if (track.path.length > 10) {
+                track.path.shift();
+            }
+            
+            track.polyline.setLatLngs(track.path);
+        }
+    }
+
+    // Enhanced emergency popup with live info
+    createEmergencyPopup(emergency) {
+        const lastUpdate = emergency.lastUpdate ? 
+            new Date(emergency.lastUpdate).toLocaleTimeString() : 
+            'Just now';
+            
+        return `
+            <div class="emergency-popup" style="min-width: 250px;">
+                <h4>${this.getEmergencyIcon(emergency.type)} ${emergency.type.toUpperCase()} EMERGENCY</h4>
+                <div style="margin: 10px 0;">
+                    <p><strong>👤 Tourist:</strong> ${emergency.tourist || 'Unknown'}</p>
+                    <p><strong>📍 Location:</strong> ${emergency.location}</p>
+                    <p><strong>🕒 Reported:</strong> ${new Date(emergency.timestamp || emergency.time).toLocaleString()}</p>
+                    <p><strong>📡 Last Update:</strong> ${lastUpdate}</p>
+                    <p><strong>🔴 Status:</strong> <span style="color: ${emergency.status === 'active' ? 'red' : 'green'};">${emergency.status.toUpperCase()}</span></p>
+                </div>
+                <div style="display: grid; gap: 5px; margin-top: 10px;">
+                    <button onclick="authorityApp.viewEmergencyDetails(${emergency.id})" 
+                            class="primary-btn small">View Details</button>
+                    <button onclick="authorityApp.assignToNearestResponder(${emergency.id})" 
+                            class="secondary-btn small">Assign Responder</button>
+                    <button onclick="authorityApp.centerOnTourist(${emergency.id})" 
+                            class="secondary-btn small">📍 Track Movement</button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Center map on moving tourist
+    centerOnTourist(emergencyId) {
+        const emergency = this.emergencies.find(e => e.id === emergencyId);
+        if (emergency && emergency.coordinates) {
+            let coordinates;
+            
+            if (Array.isArray(emergency.coordinates)) {
+                coordinates = emergency.coordinates;
+            } else if (typeof emergency.coordinates === 'string') {
+                coordinates = emergency.coordinates.split(',').map(Number);
+            }
+            
+            if (coordinates) {
+                this.map.setView(coordinates, 16, {
+                    animate: true,
+                    duration: 1
+                });
+                
+                // Flash the marker to highlight
+                const marker = this.emergencyMarkers.get(emergencyId);
+                if (marker) {
+                    this.flashMarker(marker, 5);
+                }
+                
+                this.showNotification(`Now tracking ${emergency.tourist || 'tourist'} movement`);
+            }
+        }
+    }
+
+    // Flash marker animation
+    flashMarker(marker, times) {
+        let count = 0;
+        const interval = setInterval(() => {
+            marker.getElement().style.opacity = marker.getElement().style.opacity === '0.5' ? '1' : '0.5';
+            count++;
+            if (count >= times * 2) {
+                clearInterval(interval);
+                marker.getElement().style.opacity = '1';
+            }
+        }, 300);
+    }
+
+    // Handle new emergency with live tracking
+    handleNewEmergency(emergency) {
+        // Check if emergency already exists
+        const existingIndex = this.emergencies.findIndex(e => e.id === emergency.id);
+        
+        if (existingIndex === -1) {
+            this.emergencies.unshift(emergency);
+            // Start live tracking for new emergency
+            this.startTrackingEmergency(emergency);
+        } else {
+            this.emergencies[existingIndex] = emergency;
+        }
+        
+        this.addEmergencyToMap(emergency);
+        this.updateEmergencyDisplay();
+        this.showEmergencyNotification(emergency);
+    }
+
+    // Start tracking a specific emergency
+    startTrackingEmergency(emergency) {
+        if (emergency.status === 'active') {
+            // Simulate movement for demo (in real app, this would come from GPS)
+            setInterval(() => {
+                this.simulateTouristMovement(emergency.id);
+            }, 5000);
+        }
+    }
+
+    // Simulate tourist movement for demo
+    simulateTouristMovement(emergencyId) {
+        const emergency = this.emergencies.find(e => e.id === emergencyId);
+        if (!emergency || emergency.status !== 'active') return;
+
+        // Add small random movement
+        const latChange = (Math.random() - 0.5) * 0.001;
+        const lngChange = (Math.random() - 0.5) * 0.001;
+        
+        if (Array.isArray(emergency.coordinates)) {
+            emergency.coordinates[0] += latChange;
+            emergency.coordinates[1] += lngChange;
+        }
+        
+        emergency.lastUpdate = new Date().toISOString();
+        
+        // Update the marker
+        this.updateEmergencyMarker(emergency);
+    }
+
+    // Clean up tracking when emergency is resolved
+    resolveEmergency() {
+        if (!this.selectedEmergency) return;
+        
+        const emergencyId = this.selectedEmergency.id;
+        
+        // Stop tracking
+        if (this.liveTracks.has(emergencyId)) {
+            const track = this.liveTracks.get(emergencyId);
+            this.map.removeLayer(track.polyline);
+            this.liveTracks.delete(emergencyId);
+        }
+        
+        this.selectedEmergency.status = 'resolved';
+        
+        // Free up the assigned responder
+        if (this.selectedEmergency.assignedTo) {
+            const responder = this.responders.find(r => r.name === this.selectedEmergency.assignedTo);
+            if (responder) {
+                responder.status = 'online';
+            }
+        }
+        
+        this.updateEmergencyDisplay();
+        this.updateResponderDisplay();
+        this.closeModal();
+        this.showNotification('Emergency marked as resolved - Tracking stopped');
+    }
+
+    // Update init method to start live tracking
+    init() {
+        this.checkAuthentication();
+        this.initializeMap();
+        this.loadResponders();
+        this.setupEventListeners();
+        this.startRealTimeUpdates();
+        this.initializeLiveTracking(); // Add this line
+        
+        console.log('Authority Dashboard - Live SOS Feed with Tracking Active');
+    }
+}
     checkAuthentication() {
         const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
         
