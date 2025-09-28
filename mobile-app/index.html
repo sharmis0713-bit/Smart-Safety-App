@@ -229,85 +229,87 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // Current user type
-        let userType = 'tourist';
+<script>
+    // Current user type
+    let userType = 'tourist'; // Default to tourist
+    
+    // Toggle password visibility
+    document.querySelector('.password-toggle').addEventListener('click', function() {
+        const passwordField = document.getElementById('password');
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            this.textContent = '🔒';
+        } else {
+            passwordField.type = 'password';
+            this.textContent = '👁️';
+        }
+    });
+    
+    // Toggle between Tourist and Authority
+    document.getElementById('touristBtn').addEventListener('click', function() {
+        document.getElementById('touristBtn').classList.add('active');
+        document.getElementById('authorityBtn').classList.remove('active');
+        userType = 'tourist';
+        document.getElementById('authorityId').value = 'TOUR-001';
+        document.querySelector('.form-group label[for="authorityId"]').textContent = 'Tourist ID';
+    });
+    
+    document.getElementById('authorityBtn').addEventListener('click', function() {
+        document.getElementById('authorityBtn').classList.add('active');
+        document.getElementById('touristBtn').classList.remove('active');
+        userType = 'authority';
+        document.getElementById('authorityId').value = 'AUTH-001';
+        document.querySelector('.form-group label[for="authorityId"]').textContent = 'Authority ID';
+    });
+    
+    // Form submission
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
         
-        // Toggle password visibility
-        document.querySelector('.password-toggle').addEventListener('click', function() {
-            const passwordField = document.getElementById('password');
-            if (passwordField.type === 'password') {
-                passwordField.type = 'text';
-                this.textContent = '🔒';
+        const password = document.getElementById('password').value;
+        const securityCode = document.getElementById('securityCode').value;
+        
+        // Simple validation
+        if (!password || !securityCode) {
+            alert('Please enter both password and security code');
+            return;
+        }
+        
+        // Store login info in sessionStorage for the dashboard to use
+        sessionStorage.setItem('userId', document.getElementById('authorityId').value);
+        sessionStorage.setItem('userType', userType);
+        sessionStorage.setItem('isLoggedIn', 'true');
+        
+        // Show loading state
+        const loginBtn = document.querySelector('.btn-login');
+        const originalText = loginBtn.textContent;
+        loginBtn.textContent = 'Redirecting...';
+        loginBtn.disabled = true;
+        
+        console.log('Login successful, redirecting to:', userType); // Debug log
+        
+        // Redirect to appropriate dashboard based on user type
+        setTimeout(() => {
+            if (userType === 'authority') {
+                window.location.href = 'authority-dashboard.html';
             } else {
-                passwordField.type = 'password';
-                this.textContent = '👁️';
+                window.location.href = 'tourist-dashboard.html';
             }
-        });
-        
-        // Toggle between Tourist and Authority
-        document.getElementById('touristBtn').addEventListener('click', function() {
-            document.getElementById('touristBtn').classList.add('active');
-            document.getElementById('authorityBtn').classList.remove('active');
-            userType = 'tourist';
-            document.getElementById('authorityId').value = 'TOUR-001';
-            document.querySelector('.form-group label[for="authorityId"]').textContent = 'Tourist ID';
-        });
-        
-        document.getElementById('authorityBtn').addEventListener('click', function() {
-            document.getElementById('authorityBtn').classList.add('active');
-            document.getElementById('touristBtn').classList.remove('active');
-            userType = 'authority';
-            document.getElementById('authorityId').value = 'AUTH-001';
-            document.querySelector('.form-group label[for="authorityId"]').textContent = 'Authority ID';
-        });
-        
-        // Form submission
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const password = document.getElementById('password').value;
-            const securityCode = document.getElementById('securityCode').value;
-            
-            // Simple validation
-            if (!password || !securityCode) {
-                alert('Please enter both password and security code');
-                return;
+        }, 1000);
+    });
+    
+    // Check if already logged in
+    window.addEventListener('load', function() {
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            const userType = sessionStorage.getItem('userType');
+            console.log('Already logged in as:', userType); // Debug log
+            if (userType === 'authority') {
+                window.location.href = 'authority-dashboard.html';
+            } else {
+                window.location.href = 'tourist-dashboard.html';
             }
-            
-            // Store login info in sessionStorage for the dashboard to use
-            sessionStorage.setItem('userId', document.getElementById('authorityId').value);
-            sessionStorage.setItem('userType', userType);
-            sessionStorage.setItem('isLoggedIn', 'true');
-            
-            // Show loading state
-            const loginBtn = document.querySelector('.btn-login');
-            const originalText = loginBtn.textContent;
-            loginBtn.textContent = 'Redirecting...';
-            loginBtn.disabled = true;
-            
-            // Redirect to appropriate dashboard based on user type
-            setTimeout(() => {
-                if (userType === 'authority') {
-                    window.location.href = 'authority-dashboard.html';
-                } else {
-                    window.location.href = 'tourist-dashboard.html';
-                }
-            }, 1000);
-        });
-        
-        // Check if already logged in
-        window.addEventListener('load', function() {
-            if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                const userType = sessionStorage.getItem('userType');
-                if (userType === 'authority') {
-                    window.location.href = 'authority-dashboard.html';
-                } else {
-                    window.location.href = 'tourist-dashboard.html';
-                }
-            }
-        });
-    </script>
+        }
+    });
+</script>
 </body>
 </html>
