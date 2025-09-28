@@ -371,7 +371,24 @@
                 </div>
             </div>
         </section>
-
+// In updateEmergencyDisplay() method, update the emergency item HTML:
+        container.innerHTML = this.emergencies.map(emergency => `
+    <div class="emergency-item ${emergency.type} ${emergency.status === 'active' ? 'tracking-active' : ''}" 
+         onclick="authorityApp.viewEmergencyDetails(${emergency.id})">
+        <div class="emergency-icon">${this.getEmergencyIcon(emergency.type)}</div>
+        <div class="emergency-info">
+            <h4>${emergency.title || emergency.type + ' Emergency'} 
+                ${emergency.status === 'active' ? '<span class="live-badge">LIVE</span>' : ''}
+            </h4>
+            <p>${emergency.location}</p>
+            <small>📡 Last update: ${emergency.lastUpdate ? 
+                new Date(emergency.lastUpdate).toLocaleTimeString() : 'Just now'}</small>
+        </div>
+        <div class="emergency-status ${emergency.status}">
+            ${emergency.status.toUpperCase()}
+        </div>
+    </div>
+`).join('');
         <!-- Main Content Grid -->
         <div class="content-grid">
             <!-- Map Section -->
