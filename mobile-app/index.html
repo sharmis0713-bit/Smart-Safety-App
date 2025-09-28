@@ -3,113 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafeTravel Guardian - Login</title>
-    <link rel="stylesheet" href="styles/common.css">
-    <link rel="stylesheet" href="styles/login.css">
+    <title>SafeTravel Guardian</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .left-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #1a2a6c, #2a3a8c);
+            color: white;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 40px;
+        }
+        
+        .features {
+            list-style: none;
+        }
+        
+        .features li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .features li:before {
+            content: "✓";
+            margin-right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .right-panel {
+            flex: 1;
+            padding: 50px;
+            background: white;
+        }
+        
+        .login-header {
+            margin-bottom: 30px;
+        }
+        
+        .login-header h2 {
+            color: #1a2a6c;
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .toggle-buttons {
+            display: flex;
+            margin-bottom: 25px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 5px;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .toggle-btn.active {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #1a2a6c;
+            outline: none;
+        }
+        
+        .password-field {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .checkbox-group input {
+            margin-right: 10px;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1a2a6c, #2a3a8c);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .btn-login:hover {
+            background: linear-gradient(135deg, #2a3a8c, #3a4a9c);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .warning {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .signup-link a {
+            color: #1a2a6c;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .left-panel, .right-panel {
+                padding: 30px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
-            <h1>🛡️ SafeTravel Guardian</h1>
-            <p>Secure access to your safety dashboard</p>
+    <div class="container">
+        <div class="left-panel">
+            <div class="logo">SafeTravel Guardian</div>
+            <div class="tagline">Secure access to your safety dashboard</div>
+            <ul class="features">
+                <li>Real-time travel alerts</li>
+                <li>Emergency contact coordination</li>
+                <li>Location tracking and sharing</li>
+                <li>Risk assessment tools</li>
+                <li>24/7 support access</li>
+            </ul>
         </div>
         
-        <div class="login-card">
-            <h2>Login to SafeTravel</h2>
-            <p class="login-subtitle">Enter your credentials to access your account</p>
+        <div class="right-panel">
+            <div class="login-header">
+                <h2>Login to SafeTravel</h2>
+                <p>Enter your credentials to access your account</p>
+            </div>
             
-            <form id="loginForm" class="login-form">
-                <!-- User Type Selection -->
-                <div class="user-type-selection">
-                    <label class="user-type-option">
-                        <input type="radio" name="userType" value="tourist" id="touristType">
-                        <span class="radio-checkmark"></span>
-                        <span class="user-type-label">
-                            <span class="user-icon">👤</span>
-                            Tourist
-                        </span>
-                    </label>
-                    <label class="user-type-option">
-                        <input type="radio" name="userType" value="authority" id="authorityType" checked>
-                        <span class="radio-checkmark"></span>
-                        <span class="user-type-label">
-                            <span class="user-icon">👮</span>
-                            Authority
-                        </span>
-                    </label>
-                </div>
-
-                <!-- Authority ID Field -->
-                <div class="form-group" id="authorityIdGroup">
+            <div class="toggle-buttons">
+                <button class="toggle-btn">Tours!</button>
+                <button class="toggle-btn active">Authority</button>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
                     <label for="authorityId">Authority ID</label>
-                    <input type="text" id="authorityId" name="authorityId" 
-                           placeholder="AUTH-001" value="AUTH-001">
+                    <input type="text" id="authorityId" class="form-control" value="AUTH-001">
                 </div>
-
-                <!-- Tourist ID Field (Hidden by default) -->
-                <div class="form-group hidden" id="touristIdGroup">
-                    <label for="touristId">Tourist ID</label>
-                    <input type="text" id="touristId" name="touristId" 
-                           placeholder="TOUR-001">
-                </div>
-
-                <!-- Password Field -->
+                
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" 
-                           placeholder="Enter your password" required>
+                    <div class="password-field">
+                        <input type="password" id="password" class="form-control" placeholder="Enter your password">
+                        <button type="button" class="password-toggle">👁️</button>
+                    </div>
                 </div>
-
-                <!-- Security Code Field -->
+                
                 <div class="form-group">
                     <label for="securityCode">Security Code</label>
-                    <input type="password" id="securityCode" name="securityCode" 
-                           placeholder="Enter security code" required>
+                    <input type="text" id="securityCode" class="form-control" placeholder="Enter security code">
                 </div>
-
-                <!-- Checkbox Options -->
+                
                 <div class="checkbox-group">
-                    <label class="checkbox-option">
-                        <input type="checkbox" id="rememberDevice" name="rememberDevice">
-                        <span class="checkmark"></span>
-                        Remember This Device
-                    </label>
-                    <label class="checkbox-option">
-                        <input type="checkbox" id="emergencyDashboard" name="emergencyDashboard" checked>
-                        <span class="checkmark"></span>
-                        Access Emergency Dashboard
-                    </label>
+                    <input type="checkbox" id="rememberDevice">
+                    <label for="rememberDevice">Remember This Device</label>
                 </div>
-
-                <!-- Security Notice -->
-                <div class="security-notice">
-                    <p>⚠️ Authorized personnel only. All access is monitored.</p>
+                
+                <button type="submit" class="btn-login">Access Emergency Dashboard</button>
+                
+                <div class="warning">
+                    Authorized personnel only. All access is monitored.
                 </div>
-
-                <button type="submit" class="login-btn">
-                    🔐 Login to Safety System
-                </button>
             </form>
             
-            <!-- Demo Credentials -->
-            <div class="demo-credentials">
-                <h3>Demo Credentials:</h3>
-                <div class="credential-section">
-                    <h4>👮 Authority Access:</h4>
-                    <p><strong>ID:</strong> AUTH-001 | <strong>Password:</strong> demo123 | <strong>Security Code:</strong> 1234</p>
-                </div>
-                <div class="credential-section">
-                    <h4>👤 Tourist Access:</h4>
-                    <p><strong>ID:</strong> TOUR-001 | <strong>Password:</strong> demo123 | <strong>Security Code:</strong> 1234</p>
-                </div>
-            </div>
-
-            <!-- Sign Up Link -->
             <div class="signup-link">
-                <p>Don't have an account? <a href="#" id="signupLink">Sign Up</a></p>
+                Don't have an account? <a href="#">Sign Up</a>
             </div>
         </div>
     </div>
-    <script src="js/auth.js"></script>
+
+    <script>
+        // Toggle password visibility
+        document.querySelector('.password-toggle').addEventListener('click', function() {
+            const passwordField = document.getElementById('password');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                this.textContent = '🔒';
+            } else {
+                passwordField.type = 'password';
+                this.textContent = '👁️';
+            }
+        });
+        
+        // Toggle between Tours and Authority
+        document.querySelectorAll('.toggle-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.toggle-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+        
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Login attempt recorded. Access would be verified in a real system.');
+        });
+    </script>
 </body>
 </html>
