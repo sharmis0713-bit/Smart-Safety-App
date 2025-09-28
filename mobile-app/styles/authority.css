@@ -10,7 +10,48 @@
     align-items: center;
     box-shadow: 0 8px 32px rgba(44, 62, 80, 0.1);
 }
+/* Live Tracking Styles */
+.moving-marker {
+    animation: pulse 2s infinite;
+}
 
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.tracking-active {
+    border: 2px solid #4ecdc4 !important;
+    box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
+}
+
+.live-badge {
+    background: #ff6b6b;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    margin-left: 5px;
+    animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+}
+
+/* Movement trail styles */
+.leaflet-interactive {
+    stroke-dasharray: 10, 10;
+    animation: dash 1s linear infinite;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -20;
+    }
+}
 .authority-info {
     display: flex;
     align-items: center;
