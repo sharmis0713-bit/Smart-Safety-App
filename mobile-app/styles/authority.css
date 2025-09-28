@@ -377,3 +377,493 @@ status-assigned { color: #28a745; font-weight: bold; }
         flex-direction: column;
     }
 }
+/* Add these styles to your existing authority.css */
+
+/* Toast Notifications */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 300px;
+    z-index: 1000;
+    animation: slideInRight 0.3s ease;
+}
+
+.toast-notification.success {
+    border-left: 4px solid #4ecdc4;
+}
+
+.toast-notification.error {
+    border-left: 4px solid #ff6b6b;
+}
+
+.toast-notification.warning {
+    border-left: 4px solid #ffe66d;
+}
+
+.toast-notification.emergency {
+    border-left: 4px solid #ff6b6b;
+    background: #ffe6e6;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Live Tracking Styles */
+.moving-marker {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.tracking-active {
+    border: 2px solid #4ecdc4 !important;
+    box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
+}
+
+.live-badge {
+    background: #ff6b6b;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    margin-left: 5px;
+    animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+}
+
+/* Movement trail styles */
+.leaflet-interactive {
+    stroke-dasharray: 10, 10;
+    animation: dash 1s linear infinite;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -20;
+    }
+}
+
+/* Enhanced Emergency Items */
+.emergency-item {
+    background: rgba(255, 255, 255, 0.95);
+    border-left: 4px solid #ccc;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.emergency-item:hover {
+    transform: translateX(5px);
+    background: rgba(255, 255, 255, 1);
+}
+
+.emergency-item.critical { 
+    border-left-color: #dc3545; 
+    background: rgba(220, 53, 69, 0.1); 
+}
+
+.emergency-item.medical { 
+    border-left-color: #28a745; 
+    background: rgba(40, 167, 69, 0.1); 
+}
+
+.emergency-item.security { 
+    border-left-color: #ff9500; 
+    background: rgba(255, 149, 0, 0.1); 
+}
+
+.emergency-item.support { 
+    border-left-color: #2196F3; 
+    background: rgba(33, 150, 243, 0.1); 
+}
+
+.emergency-icon {
+    font-size: 1.5rem;
+}
+
+.emergency-info {
+    flex: 1;
+}
+
+.emergency-info h4 {
+    margin: 0 0 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.emergency-info p {
+    margin: 0 0 5px 0;
+    color: #666;
+}
+
+.emergency-info small {
+    color: #888;
+}
+
+.assigned-to {
+    background: #e3f2fd;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+.emergency-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.emergency-status.active {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.emergency-status.assigned {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.emergency-status.resolved {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+/* Enhanced Responder Items */
+.responder-item {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #ccc;
+}
+
+.responder-item.online {
+    border-left-color: #4ecdc4;
+}
+
+.responder-item.busy {
+    border-left-color: #ff6b6b;
+    opacity: 0.7;
+}
+
+.responder-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.responder-name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.responder-location {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.responder-type {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.responder-status {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.responder-status.online {
+    color: #4ecdc4;
+}
+
+.responder-status.busy {
+    color: #ff6b6b;
+}
+
+/* Analytics Section */
+.analytics-section {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 25px;
+}
+
+.analytics-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.analytics-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.analytics-card h4 {
+    margin: 0 0 15px 0;
+    color: #4ecdc4;
+}
+
+.chart-container {
+    height: 200px;
+    position: relative;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+}
+
+.metric-item {
+    text-align: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.metric-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.metric-label {
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+/* Enhanced Header */
+.header-content {
+    text-align: center;
+    flex: 1;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.status-indicator {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-indicator.online {
+    color: #4ecdc4;
+}
+
+/* Enhanced Stats */
+.stat-trend {
+    font-size: 0.8rem;
+    margin-top: 5px;
+    opacity: 0.8;
+}
+
+.responder-stats {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.response-time {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Map Legend Enhancements */
+.legend-dot.moving {
+    background: #4ecdc4;
+    animation: pulse 2s infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .user-info {
+        align-items: center;
+    }
+    
+    .analytics-controls {
+        flex-direction: column;
+    }
+    
+    .emergency-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .responder-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .responder-actions {
+        align-self: stretch;
+    }
+    
+    .responder-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Button Enhancements */
+.btn.success {
+    background: #4ecdc4;
+    color: white;
+}
+
+.btn.warning {
+    background: #ffe66d;
+    color: #333;
+}
+
+.btn.small {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
+
+/* Modal Enhancements */
+.modal-content.large {
+    max-width: 600px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.close {
+    font-size: 2rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.close:hover {
+    opacity: 1;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #4ecdc4;
+}
+
+.detail-value {
+    color: #ccc;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #ccc;
+}
+
+.empty-state p {
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+}
+
+.empty-state small {
+    font-size: 0.9rem;
+}
