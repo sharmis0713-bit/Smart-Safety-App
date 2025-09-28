@@ -7,9 +7,39 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/authority.css">
+    <style>
+        /* Add authentication check styles */
+        .auth-check {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .auth-check.show {
+            display: flex;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Authentication Check Overlay -->
+    <div id="authCheck" class="auth-check show">
+        <div style="text-align: center;">
+            <h2>🔒 Verifying Authorization...</h2>
+            <p>Please wait while we verify your credentials</p>
+        </div>
+    </div>
+
+    <div class="container" style="display: none;" id="dashboardContent">
+        <!-- Your existing dashboard content -->
         <!-- Main Header -->
         <header class="dashboard-header">
             <div class="header-content">
@@ -21,232 +51,56 @@
                     <span id="authorityName">Response Unit</span>
                     <span class="status-indicator online">● ONLINE</span>
                 </div>
-                <button class="btn logout" onclick="authManager.logout()">Logout</button>
+                <button class="btn logout" onclick="logout()">Logout</button>
             </div>
         </header>
 
-        <!-- Real-time Stats -->
-        <section class="stats-container">
-            <h2 class="stats-title">Live Emergency Analytics</h2>
-            <div class="stats-grid">
-                <div class="stat-box critical">
-                    <span class="stat-value critical" id="activeEmergencies">0</span>
-                    <span class="stat-label">Active Emergencies</span>
-                    <div class="stat-trend" id="emergencyTrend">+0% today</div>
-                </div>
-                <div class="stat-box online">
-                    <span class="stat-value online" id="respondersOnline">0</span>
-                    <span class="stat-label">Responders Online</span>
-                    <div class="stat-trend" id="responderTrend">100% available</div>
-                </div>
-                <div class="stat-box response">
-                    <span class="stat-value response" id="avgResponseTime">0s</span>
-                    <span class="stat-label">Avg Response Time</span>
-                    <div class="stat-trend" id="responseTrend">Target: <5s</div>
-                </div>
-                <div class="stat-box resolved">
-                    <span class="stat-value resolved" id="resolvedToday">0</span>
-                    <span class="stat-label">Resolved Today</span>
-                    <div class="stat-trend" id="resolutionTrend">+0% efficiency</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Main Content Grid -->
-        <div class="content-grid">
-            <!-- Live Map Section -->
-            <section class="map-section">
-                <div class="section-title">
-                    <h2>📍 Live Emergency Map - India</h2>
-                    <div class="map-controls">
-                        <button class="btn primary" onclick="authorityApp.refreshMap()">
-                            🔄 Refresh
-                        </button>
-                        <button class="btn secondary" onclick="authorityApp.toggleHeatmap()" id="heatmapBtn">
-                            🔥 Heatmap
-                        </button>
-                        <button class="btn secondary" onclick="authorityApp.centerOnActive()">
-                            🎯 Center Active
-                        </button>
-                    </div>
-                </div>
-                <div id="authorityMap"></div>
-                <div class="map-legend">
-                    <div class="legend-item">
-                        <span class="legend-dot critical"></span>
-                        <span>Critical Emergency</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-dot medical"></span>
-                        <span>Medical Assistance</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-dot security"></span>
-                        <span>Security Assistance</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-dot moving"></span>
-                        <span>Moving Tourist</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Live Emergency Feed -->
-            <section class="alerts-section">
-                <div class="section-title">
-                    <h2>📡 Live SOS Feed</h2>
-                    <div class="alert-controls">
-                        <select id="emergencyFilter" onchange="authorityApp.filterEmergencies()">
-                            <option value="all">All Emergencies</option>
-                            <option value="critical">Critical Only</option>
-                            <option value="medical">Medical</option>
-                            <option value="security">Security</option>
-                            <option value="active">Active Only</option>
-                        </select>
-                        <button class="btn primary" onclick="authorityApp.exportReport()">
-                            📊 Export
-                        </button>
-                    </div>
-                </div>
-                <div class="emergency-list" id="emergenciesContainer">
-                    <!-- Emergency items will be populated here -->
-                    <div class="empty-state">
-                        <p>No active emergencies</p>
-                        <small>All systems monitoring normally</small>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <!-- Responder Management -->
-        <section class="responder-section">
-            <div class="section-title">
-                <h2>👥 Responder Management</h2>
-                <div class="responder-stats">
-                    <span id="availableResponders">0 available responders</span>
-                    <span class="response-time">Avg Response: <span id="currentResponseTime">0s</span></span>
-                </div>
-            </div>
-            <div class="responder-list" id="responderList">
-                <!-- Responder items will be populated here -->
-            </div>
-        </section>
-
-        <!-- Analytics Dashboard -->
-        <section class="analytics-section">
-            <div class="section-title">
-                <h2>📈 Analytics & Reporting</h2>
-                <div class="analytics-controls">
-                    <select id="timeRange" onchange="authorityApp.updateAnalytics()">
-                        <option value="today">Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
-                    </select>
-                    <button class="btn primary" onclick="authorityApp.generateReport()">
-                        📋 Generate Report
-                    </button>
-                </div>
-            </div>
-            <div class="analytics-grid">
-                <div class="analytics-card">
-                    <h4>Emergency Types</h4>
-                    <div class="chart-container">
-                        <canvas id="typeChart"></canvas>
-                    </div>
-                </div>
-                <div class="analytics-card">
-                    <h4>Response Times</h4>
-                    <div class="chart-container">
-                        <canvas id="responseChart"></canvas>
-                    </div>
-                </div>
-                <div class="analytics-card">
-                    <h4>Hourly Activity</h4>
-                    <div class="chart-container">
-                        <canvas id="activityChart"></canvas>
-                    </div>
-                </div>
-                <div class="analytics-card">
-                    <h4>Success Metrics</h4>
-                    <div class="metrics-grid">
-                        <div class="metric-item">
-                            <span class="metric-value" id="successRate">0%</span>
-                            <span class="metric-label">Success Rate</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-value" id="avgResolution">0m</span>
-                            <span class="metric-label">Avg Resolution</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-value" id="satisfaction">0%</span>
-                            <span class="metric-label">Satisfaction</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- Emergency Details Modal -->
-    <div id="emergencyModal" class="modal">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h3 id="modalTitle">Emergency Details</h3>
-                <span class="close" onclick="authorityApp.closeModal()">&times;</span>
-            </div>
-            <div class="emergency-details">
-                <div class="detail-row">
-                    <span class="detail-label">Emergency Type:</span>
-                    <span class="detail-value" id="detailType">-</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Tourist:</span>
-                    <span class="detail-value" id="detailTourist">-</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Location:</span>
-                    <span class="detail-value" id="detailLocation">-</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Coordinates:</span>
-                    <span class="detail-value" id="detailCoordinates">-</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Time Reported:</span>
-                    <span class="detail-value" id="detailTime">-</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="detail-value" id="detailStatus">-</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Assigned To:</span>
-                    <span class="detail-value" id="detailAssigned">-</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Last Update:</span>
-                    <span class="detail-value" id="detailLastUpdate">-</span>
-                </div>
-            </div>
-            <div class="action-buttons">
-                <button class="btn primary" onclick="authorityApp.assignResponder()">
-                    🚑 Assign Responder
-                </button>
-                <button class="btn secondary" onclick="authorityApp.contactTourist()">
-                    📞 Contact Tourist
-                </button>
-                <button class="btn success" onclick="authorityApp.resolveEmergency()">
-                    ✅ Resolve Emergency
-                </button>
-                <button class="btn warning" onclick="authorityApp.centerOnTourist()">
-                    🎯 Track Movement
-                </button>
-            </div>
-        </div>
+        <!-- Rest of your dashboard content -->
+        <!-- ... -->
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Authentication check
+        window.onload = function() {
+            const authorityId = localStorage.getItem('authorityId');
+            const userType = localStorage.getItem('userType');
+            
+            // Check if user is properly authenticated as authority
+            if (!authorityId || userType !== 'authority') {
+                alert('Access denied. Please login as Authority.');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // User is authenticated, show dashboard
+            document.getElementById('authCheck').classList.remove('show');
+            document.getElementById('dashboardContent').style.display = 'block';
+            
+            // Update dashboard with user info
+            document.getElementById('authorityName').textContent = authorityId;
+        };
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('authorityId');
+            localStorage.removeItem('userType');
+            window.location.href = 'index.html';
+        }
+        
+        // If you have existing authManager, update it
+        if (typeof authManager !== 'undefined') {
+            const originalLogout = authManager.logout;
+            authManager.logout = function() {
+                localStorage.removeItem('authorityId');
+                localStorage.removeItem('userType');
+                if (originalLogout) originalLogout();
+                window.location.href = 'index.html';
+            };
+        }
+    </script>
+    <!-- Your existing scripts -->
     <script src="js/auth.js"></script>
     <script src="js/emergency-broadcast.js"></script>
     <script src="js/authority-app.js"></script>
