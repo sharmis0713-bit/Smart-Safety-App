@@ -341,5 +341,62 @@
         console.log('Dashboard loaded without authentication');
     });
 </script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // ULTRA SIMPLE FIX - Remove auth completely
+    document.addEventListener('DOMContentLoaded', function() {
+        // Hide auth overlay immediately
+        const authOverlay = document.getElementById('authOverlay');
+        const dashboardContent = document.getElementById('dashboardContent');
+        
+        if (authOverlay) authOverlay.style.display = 'none';
+        if (dashboardContent) dashboardContent.style.display = 'block';
+        
+        console.log('Dashboard loaded without authentication');
+        
+        // Initialize the map
+        initializeMap();
+    });
+
+    function initializeMap() {
+        // Create map centered on India
+        const map = L.map('authorityMap').setView([20.5937, 78.9629], 5);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Add some sample emergency markers
+        const emergencies = [
+            { lat: 19.0760, lng: 72.8777, type: 'Medical', location: 'Mumbai' },
+            { lat: 28.6139, lng: 77.2090, type: 'Security', location: 'Delhi' },
+            { lat: 12.9716, lng: 77.5946, type: 'Transportation', location: 'Bangalore' },
+            { lat: 13.0827, lng: 80.2707, type: 'Medical', location: 'Chennai' },
+            { lat: 22.5726, lng: 88.3639, type: 'Security', location: 'Kolkata' }
+        ];
+        
+        emergencies.forEach(emergency => {
+            const marker = L.marker([emergency.lat, emergency.lng]).addTo(map);
+            marker.bindPopup(`
+                <strong>${emergency.type} Emergency</strong><br>
+                Location: ${emergency.location}<br>
+                Status: Active
+            `);
+        });
+        
+        console.log('Map initialized with emergency locations');
+    }
+
+    function goToLogin() {
+        sessionStorage.clear();
+        window.location.href = 'index.html';
+    }
+    
+    function logout() {
+        sessionStorage.clear();
+        window.location.href = 'index.html';
+    }
+</script>
 </body>
 </html>
