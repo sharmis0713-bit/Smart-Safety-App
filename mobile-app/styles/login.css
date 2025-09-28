@@ -1,223 +1,1030 @@
-class AuthManager {
-    constructor() {
-        this.currentUser = null;
-        this.isAuthenticated = false;
-        this.init();
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Color Palette */
+    --primary-blue: #2563eb;
+    --primary-blue-dark: #1d4ed8;
+    --text-dark: #1f2937;
+    --text-light: #6b7280;
+    --border-color: #e5e7eb;
+    --background-light: #f9fafb;
+    --white: #ffffff;
+    --google-red: #db4437;
+    --google-blue: #4285f4;
+    --success: #10b981;
+    --error: #ef4444;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--white);
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+.login-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+}
+
+/* Left Side - Branding */
+.login-branding {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.brand-content {
+    text-align: center;
+    max-width: 400px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.logo-icon {
+    font-size: 3rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.logo h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.brand-tagline {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* Right Side - Login Form */
+.login-form-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--white);
+}
+
+.form-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.form-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.form-header p {
+    color: var(--text-light);
+    font-size: 1rem;
+}
+
+/* User Type Selector */
+.user-type-selector {
+    display: flex;
+    background: var(--background-light);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 2rem;
+}
+
+.user-type-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+.user-type-btn.active {
+    background: var(--white);
+    color: var(--primary-blue);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-type-btn:hover:not(.active) {
+    color: var(--primary-blue);
+}
+
+.user-icon {
+    font-size: 1.2rem;
+}
+
+/* Login Forms */
+.login-form {
+    display: none;
+}
+
+.login-form.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    font-size: 0.9rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: var(--white);
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input-group input::placeholder {
+    color: var(--text-light);
+}
+
+/* Form Options */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+
+.checkbox input {
+    display: none;
+}
+
+.checkmark {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.checkbox input:checked + .checkmark {
+    background: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+
+.checkbox input:checked + .checkmark::after {
+    content: '✓';
+    color: var(--white);
+    font-size: 12px;
+}
+
+.forgot-password {
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+/* Login Buttons */
+.login-btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.login-btn.primary {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+.login-btn.primary:hover {
+    background: var(--primary-blue-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.login-btn.google {
+    background: var(--white);
+    color: var(--text-dark);
+    border: 2px solid var(--border-color);
+}
+
+.login-btn.google:hover {
+    border-color: var(--text-light);
+    transform: translateY(-1px);
+}
+
+.google-icon {
+    font-size: 1.2rem;
+}
+
+/* Divider */
+.divider {
+    position: relative;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border-color);
+    z-index: 1;
+}
+
+.divider span {
+    background: var(--white);
+    padding: 0 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+/* Security Notice */
+.security-notice {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #92400e;
+    margin-top: 1rem;
+}
+
+.notice-icon {
+    font-size: 1rem;
+}
+
+/* Form Footer */
+.form-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.form-footer p {
+    color: var(--text-light);
+    margin-bottom: 1rem;
+}
+
+.signup-link {
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.signup-link:hover {
+    text-decoration: underline;
+}
+
+/* Demo Credentials */
+.demo-credentials {
+    margin-top: 1rem;
+}
+
+.demo-credentials details {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem;
+}
+
+.demo-credentials summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--primary-blue);
+    outline: none;
+}
+
+.demo-info {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.demo-section {
+    margin-bottom: 1rem;
+}
+
+.demo-section:last-child {
+    margin-bottom: 0;
+}
+
+.demo-section strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.demo-section p {
+    margin: 0.25rem 0;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-container {
+        grid-template-columns: 1fr;
     }
-
-    init() {
-        this.checkExistingSession();
-        this.setupEventListeners();
-        this.setupUserTypeToggle();
+    
+    .login-branding {
+        padding: 2rem 1rem;
+        min-height: 200px;
     }
-
-    setupEventListeners() {
-        const loginForm = document.getElementById('loginForm');
-        if (loginForm) {
-            loginForm.addEventListener('submit', (e) => this.handleLogin(e));
-        }
-
-        const signupLink = document.getElementById('signupLink');
-        if (signupLink) {
-            signupLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showSignupModal();
-            });
-        }
+    
+    .logo {
+        flex-direction: column;
+        gap: 0.5rem;
     }
-
-    setupUserTypeToggle() {
-        const touristRadio = document.getElementById('touristType');
-        const authorityRadio = document.getElementById('authorityType');
-        const touristIdGroup = document.getElementById('touristIdGroup');
-        const authorityIdGroup = document.getElementById('authorityIdGroup');
-
-        if (touristRadio && authorityRadio) {
-            touristRadio.addEventListener('change', () => {
-                touristIdGroup.classList.remove('hidden');
-                authorityIdGroup.classList.add('hidden');
-            });
-
-            authorityRadio.addEventListener('change', () => {
-                authorityIdGroup.classList.remove('hidden');
-                touristIdGroup.classList.add('hidden');
-            });
-        }
+    
+    .logo h1 {
+        font-size: 2rem;
     }
-
-    async handleLogin(event) {
-        event.preventDefault();
-        
-        const formData = new FormData(event.target);
-        const userType = formData.get('userType');
-        const userId = userType === 'tourist' ? formData.get('touristId') : formData.get('authorityId');
-        const password = formData.get('password');
-        const securityCode = formData.get('securityCode');
-        const rememberDevice = formData.get('rememberDevice') === 'on';
-        const emergencyDashboard = formData.get('emergencyDashboard') === 'on';
-
-        // Validate security code
-        if (!this.validateSecurityCode(securityCode)) {
-            this.showError('Invalid security code. Please use demo code: 1234');
-            return;
-        }
-
-        // Authenticate user
-        if (this.authenticateUser(userType, userId, password, securityCode)) {
-            this.currentUser = {
-                type: userType,
-                id: userId,
-                name: this.getUserName(userType, userId),
-                timestamp: new Date().toISOString(),
-                rememberDevice: rememberDevice,
-                emergencyDashboard: emergencyDashboard
-            };
-            
-            this.isAuthenticated = true;
-            this.saveSession();
-            this.redirectToDashboard();
-        } else {
-            this.showError('Invalid credentials. Please check your ID, password, and security code.');
-        }
+    
+    .login-form-section {
+        padding: 1rem;
     }
-
-    authenticateUser(userType, userId, password, securityCode) {
-        // Demo authentication logic - In real app, this would call your backend
-        const demoCredentials = {
-            authority: [
-                { id: 'AUTH-001', password: 'demo123', securityCode: '1234', name: 'Central Command' },
-                { id: 'AUTH-002', password: 'demo123', securityCode: '1234', name: 'Rapid Response Unit' }
-            ],
-            tourist: [
-                { id: 'TOUR-001', password: 'demo123', securityCode: '1234', name: 'John Traveler' },
-                { id: 'TOUR-002', password: 'demo123', securityCode: '1234', name: 'Sarah Explorer' }
-            ]
-        };
-
-        const credentials = demoCredentials[userType];
-        const user = credentials.find(u => 
-            u.id === userId && 
-            u.password === password && 
-            u.securityCode === securityCode
-        );
-
-        return !!user;
-    }
-
-    validateSecurityCode(code) {
-        // Demo validation - accept 1234 or any 4-digit code for demo
-        return code === '1234' || (/^\d{4}$/.test(code));
-    }
-
-    getUserName(userType, userId) {
-        const names = {
-            authority: {
-                'AUTH-001': 'Central Command Unit',
-                'AUTH-002': 'Rapid Response Team'
-            },
-            tourist: {
-                'TOUR-001': 'John Traveler',
-                'TOUR-002': 'Sarah Explorer'
-            }
-        };
-        return names[userType]?.[userId] || userId;
-    }
-
-    saveSession() {
-        if (this.currentUser.rememberDevice) {
-            localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-            localStorage.setItem('isAuthenticated', 'true');
-        } else {
-            sessionStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-            sessionStorage.setItem('isAuthenticated', 'true');
-        }
-    }
-
-    checkExistingSession() {
-        // Check both localStorage and sessionStorage
-        let savedUser = localStorage.getItem('currentUser');
-        let isAuthenticated = localStorage.getItem('isAuthenticated');
-        
-        if (!savedUser) {
-            savedUser = sessionStorage.getItem('currentUser');
-            isAuthenticated = sessionStorage.getItem('isAuthenticated');
-        }
-        
-        if (savedUser && isAuthenticated === 'true') {
-            this.currentUser = JSON.parse(savedUser);
-            this.isAuthenticated = true;
-            this.redirectToDashboard();
-        }
-    }
-
-    redirectToDashboard() {
-        const dashboardMap = {
-            tourist: 'tourist-dashboard.html',
-            authority: 'authority-dashboard.html'
-        };
-        
-        // Add a small delay to show successful login
-        setTimeout(() => {
-            window.location.href = dashboardMap[this.currentUser.type];
-        }, 500);
-    }
-
-    showError(message) {
-        // Remove any existing error messages
-        const existingError = document.querySelector('.error-message');
-        if (existingError) {
-            existingError.remove();
-        }
-
-        // Create error message element
-        const errorElement = document.createElement('div');
-        errorElement.className = 'error-message';
-        errorElement.innerHTML = `
-            <span class="error-icon">⚠️</span>
-            <span class="error-text">${message}</span>
-        `;
-
-        // Insert before the login button
-        const loginForm = document.getElementById('loginForm');
-        const loginBtn = loginForm.querySelector('.login-btn');
-        loginForm.insertBefore(errorElement, loginBtn);
-
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            if (errorElement.parentElement) {
-                errorElement.remove();
-            }
-        }, 5000);
-    }
-
-    showSignupModal() {
-        alert('Sign up feature coming soon! For now, please use the demo credentials provided.');
-    }
-
-    logout() {
-        this.currentUser = null;
-        this.isAuthenticated = false;
-        
-        // Clear both storage types
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('isAuthenticated');
-        sessionStorage.removeItem('currentUser');
-        sessionStorage.removeItem('isAuthenticated');
-        
-        window.location.href = 'index.html';
-    }
-
-    getCurrentUser() {
-        return this.currentUser;
-    }
-
-    isUserAuthenticated() {
-        return this.isAuthenticated;
+    
+    .form-container {
+        max-width: 100%;
     }
 }
 
-// Initialize Auth Manager
-const authManager = new AuthManager();
+/* Error/Success Messages */
+.error-message {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 
-// Make it globally available for logout functionality
-window.authManager = authManager; 
+.success-message {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Loading State */
+.login-btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.login-btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.login-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    font-family: 'Inter', sans-serif;
+}
+
+.login-header {
+    text-align: center;
+    color: white;
+    margin-bottom: 40px;
+}
+
+.login-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.login-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.login-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 450px;
+}
+
+.login-card h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+}
+
+/* User Type Selection */
+.user-type-selection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.user-type-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.user-type-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.user-type-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 10px;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.user-type-option input[type="radio"]:checked + .radio-checkmark + .user-type-label {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.user-icon {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+.radio-checkmark {
+    display: none;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Checkbox Group */
+.checkbox-group {
+    margin: 25px 0;
+}
+
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.checkbox-option input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+.checkmark {
+    display: none;
+}
+
+/* Security Notice */
+.security-notice {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.security-notice p {
+    margin: 0;
+    color: #856404;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Login Button */
+.login-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Demo Credentials */
+.demo-credentials {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+}
+
+.demo-credentials h3 {
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 1rem;
+}
+
+.credential-section {
+    margin-bottom: 15px;
+}
+
+.credential-section h4 {
+    margin-bottom: 8px;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.credential-section p {
+    margin: 5px 0;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* Sign Up Link */
+.signup-link {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e1e5e9;
+}
+
+.signup-link p {
+    color: #666;
+    margin: 0;
+}
+
+.signup-link a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.signup-link a:hover {
+    text-decoration: underline;
+}
+
+/* Error Message */
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    background: #ffe6e6;
+    border: 1px solid #ffcccc;
+    border-radius: 8px;
+    margin: 15px 0;
+    color: #d63031;
+    font-size: 0.9rem;
+}
+
+.error-icon {
+    font-size: 1.1rem;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 30px 20px;
+    }
+    
+    .login-header h1 {
+        font-size: 2rem;
+    }
+    
+    .user-type-selection {
+        grid-template-columns: 1fr;
+    }
+.login-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    font-family: 'Inter', sans-serif;
+}
+
+.login-header {
+    text-align: center;
+    color: white;
+    margin-bottom: 40px;
+}
+
+.login-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.login-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.login-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 450px;
+}
+
+.login-card h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+}
+
+/* User Type Selection */
+.user-type-selection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.user-type-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.user-type-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.user-type-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 10px;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.user-type-option input[type="radio"]:checked + .radio-checkmark + .user-type-label {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.user-icon {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+.radio-checkmark {
+    display: none;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Checkbox Group */
+.checkbox-group {
+    margin: 25px 0;
+}
+
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.checkbox-option input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+.checkmark {
+    display: none;
+}
+
+/* Security Notice */
+.security-notice {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.security-notice p {
+    margin: 0;
+    color: #856404;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Login Button */
+.login-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Demo Credentials */
+.demo-credentials {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+}
+
+.demo-credentials h3 {
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 1rem;
+}
+
+.credential-section {
+    margin-bottom: 15px;
+}
+
+.credential-section h4 {
+    margin-bottom: 8px;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.credential-section p {
+    margin: 5px 0;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* Sign Up Link */
+.signup-link {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e1e5e9;
+}
+
+.signup-link p {
+    color: #666;
+    margin: 0;
+}
+
+.signup-link a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.signup-link a:hover {
+    text-decoration: underline;
+}
+
+/* Error Message */
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    background: #ffe6e6;
+    border: 1px solid #ffcccc;
+    border-radius: 8px;
+    margin: 15px 0;
+    color: #d63031;
+    font-size: 0.9rem;
+}
+
+.error-icon {
+    font-size: 1.1rem;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 30px 20px;
+    }
+    
+    .login-header h1 {
+        font-size: 2rem;
+    }
+    
+    .user-type-selection {
+        grid-template-columns: 1fr;
+    }
