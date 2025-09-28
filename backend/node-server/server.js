@@ -23,7 +23,11 @@ const redisClient = redis.createClient({
 // Middleware
 app.use(cors());
 app.use(express.json());
-
+// COMMENTED OUT TEMPORARILY:
+// mongoose.connect(process.env.MONGODB_URI, {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true
+// });
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/safety-app', {
   useNewUrlParser: true,
@@ -79,17 +83,15 @@ app.use('/api/safety', require('./routes/safety'));
 app.use('/api/analytics', require('./routes/analytics'));
 
 // Health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    services: {
-      database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
-      redis: redisClient.isOpen ? 'Connected' : 'Disconnected'
-    }
-  });
+// Add this route to test if server works
+app.get('/', (req, res) => {
+  res.json({ message: 'Server is running without database!' });
 });
 
+// This should already be at the bottom - don't change it
+app.listen(PORT, () => {
+  console.log(`📌 Backend server running on port ${PORT}`);
+});
 // Start server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
