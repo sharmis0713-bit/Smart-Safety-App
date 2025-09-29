@@ -1214,3 +1214,359 @@ class AuthorityApp {
 document.addEventListener('DOMContentLoaded', () => {
     window.authorityApp = new AuthorityApp();
 });
+// Add this to your authority-app.js or create new file
+class AuthorityEmergencyReceiver {
+    constructor() {
+        this.emergencies = [];
+        this.emergencyMarkers = new Map();
+        this.isConnected = false;
+        
+        this.connectToEmergencySystem();
+    }
+
+    connectToEmergencySystem() {
+        if (typeof emergencyBroadcaster === 'undefined') {
+            console.error('❌ Emergency Broadcast system not found');
+            // Retry connection after 2 seconds
+            setTimeout(() => this.connectToEmergencySystem(), 2000);
+            return;
+        }
+
+        // Register to receive emergency updates
+        emergencyBroadcaster.addAuthorityListener((emergency, action) => {
+            this.handleEmergencyUpdate(emergency, action);
+        });
+
+        this.isConnected = true;
+        console.log('✅ Authority dashboard connected to emergency system');
+        
+        // Load existing emergencies
+        this.loadExistingEmergencies();
+    }
+
+    loadExistingEmergencies() {
+        if (typeof emergencyBroadcaster !== 'undefined') {
+            const activeEmergencies = emergencyBroadcaster.getActiveEmergencies();
+            activeEmergencies.forEach(emergency => {
+                this.handleEmergencyUpdate(emergency, 'existing');
+            });
+            console.log(`📊 Loaded ${activeEmergencies.length} existing emergencies`);
+        }
+    }
+
+    handleEmergencyUpdate(emergency, action) {
+        console.log(`🔄 Emergency ${action}:`, emergency);
+
+        const existingIndex = this.emergencies.findIndex(e => e.id === emergency.id);
+        
+        if (action === 'new') {
+            // New emergency - add to beginning
+            if (existingIndex === -1) {
+                this.emergencies.unshift(emergency);
+                this.addEmergencyToMap(emergency);
+                this.showEmergencyNotification(emergency);
+            }
+        } 
+        else if (action === 'update' || action === 'location_update') {
+            // Update existing emergency
+            if (existingIndex !== -1) {
+                this.emergencies[existingIndex] = emergency;
+                this.updateEmergencyMarker(emergency);
+            } else {
+                this.emergencies.unshift(emergency);
+                this.addEmergencyToMap(emergency);
+            }
+        }
+        else if (action === 'existing') {
+            // Existing emergency on connection
+            if (existingIndex === -1) {
+                this.emergencies.push(emergency);
+                this.addEmergencyToMap(emergency);
+            }
+        }
+
+        this.updateEmergencyDisplay();
+        this.updateDashboardStats();
+    }
+
+    addEmergencyToMap(emergency) {
+        if (!window.map) {
+            console.warn('Map not ready, emergency will be added when map loads');
+            return;
+        }
+
+        let coordinates;
+        if (Array.isArray(emergency.coordinates)) {
+            coordinates = emergency.coordinates;
+        } else if (typeof emergency.coordinates === 'string') {
+            coordinates = emergency.coordinates.split(',').map(Number);
+        } else {
+            console.error('Invalid coordinates:', emergency.coordinates);
+            return;
+        }
+
+        const markerColor = this.getEmergencyColor(emergency.type);
+        const marker = L.marker(coordinates, {
+            icon: L.divIcon({
+                className: `emergency-marker ${emergency.type}`,
+                html: `
+                    <div style="
+                        background-color: ${markerColor}; 
+                        width: 24px; 
+                        height: 24px; 
+                        border-radius: 50%; 
+                        border: 3px solid white;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                        animation: pulse 1.5s infinite;
+                    "></div>
+                    <div style="
+                        position: absolute;
+                        top: -30px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: rgba(0,0,0,0.8);
+                        color: white;
+                        padding: 2px 8px;
+                        border-radius: 12px;
+                        font-size: 10px;
+                        white-space: nowrap;
+                        font-weight: bold;
+                    ">${emergency.type.toUpperCase()}</div>
+                `,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            })
+        }).addTo(window.map);
+
+        marker.bindPopup(this.createEmergencyPopup(emergency));
+        
+        // Store marker reference
+        this.emergencyMarkers.set(emergency.id, marker);
+
+        console.log(`📍 Added emergency marker: ${emergency.title}`);
+    }
+
+    updateEmergencyMarker(emergency) {
+        const marker = this.emergencyMarkers.get(emergency.id);
+        if (marker && emergency.coordinates) {
+            let coordinates;
+            if (Array.isArray(emergency.coordinates)) {
+                coordinates = emergency.coordinates;
+            } else if (typeof emergency.coordinates === 'string') {
+                coordinates = emergency.coordinates.split(',').map(Number);
+            }
+
+            if (coordinates) {
+                // Smooth animation to new position
+                marker.setLatLng(coordinates, {
+                    duration: 1000,
+                    easeLinearity: 0.25
+                });
+                
+                // Update popup content
+                marker.setPopupContent(this.createEmergencyPopup(emergency));
+                
+                console.log(`🔄 Updated emergency position: ${emergency.title}`);
+            }
+        }
+    }
+
+    getEmergencyColor(type) {
+        const colors = {
+            critical: '#e74c3c',
+            medical: '#3498db',
+            security: '#f39c12',
+            support: '#2ecc71'
+        };
+        return colors[type] || '#95a5a6';
+    }
+
+    createEmergencyPopup(emergency) {
+        return `
+            <div style="min-width: 280px; font-family: 'Inter', sans-serif;">
+                <h3 style="margin: 0 0 10px 0; color: #e74c3c;">🚨 ${emergency.type.toUpperCase()}</h3>
+                <div style="margin-bottom: 10px;">
+                    <p style="margin: 5px 0;"><strong>👤 Tourist:</strong> ${emergency.tourist || 'Unknown'}</p>
+                    <p style="margin: 5px 0;"><strong>📞 Phone:</strong> ${emergency.phone || 'Not provided'}</p>
+                    <p style="margin: 5px 0;"><strong>📍 Location:</strong> ${emergency.location}</p>
+                    <p style="margin: 5px 0;"><strong>🕒 Reported:</strong> ${new Date(emergency.timestamp).toLocaleString()}</p>
+                    <p style="margin: 5px 0;"><strong>📡 Last Update:</strong> ${emergency.lastUpdate ? new Date(emergency.lastUpdate).toLocaleTimeString() : 'Just now'}</p>
+                    <p style="margin: 5px 0;"><strong>🛡️ Safety Score:</strong> ${emergency.safetyScore || 'N/A'}/100</p>
+                </div>
+                <div style="display: grid; gap: 5px; margin-top: 10px;">
+                    <button onclick="authorityReceiver.viewEmergencyDetails('${emergency.id}')" 
+                            style="padding: 8px 12px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">
+                        🚨 View Details
+                    </button>
+                    <button onclick="authorityReceiver.assignResponder('${emergency.id}')" 
+                            style="padding: 8px 12px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">
+                        👮 Assign Responder
+                    </button>
+                    <button onclick="authorityReceiver.centerOnEmergency('${emergency.id}')" 
+                            style="padding: 8px 12px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">
+                        📍 Track Movement
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    updateEmergencyDisplay() {
+        const container = document.getElementById('emergenciesContainer');
+        if (!container) return;
+
+        if (this.emergencies.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #666;">
+                    <p>No active emergencies</p>
+                    <small>Monitoring for SOS alerts...</small>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.emergencies.map(emergency => `
+            <div class="emergency-item" onclick="authorityReceiver.viewEmergencyDetails('${emergency.id}')"
+                 style="background: ${emergency.status === 'active' ? '#ffebee' : '#e8f5e9'}; 
+                        padding: 15px; 
+                        margin-bottom: 10px; 
+                        border-radius: 8px;
+                        border-left: 4px solid ${this.getEmergencyColor(emergency.type)};
+                        cursor: pointer;">
+                <div style="display: flex; justify-content: between; align-items: start;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; color: #333;">
+                            ${emergency.type.toUpperCase()} EMERGENCY
+                            ${emergency.status === 'active' ? '<span style="background: #e74c3c; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px;">LIVE</span>' : ''}
+                        </h4>
+                        <p style="margin: 0 0 5px 0; color: #666;">👤 ${emergency.tourist || 'Unknown Tourist'}</p>
+                        <p style="margin: 0 0 5px 0; color: #666;">📍 ${emergency.location}</p>
+                        <small style="color: #999;">🕒 ${new Date(emergency.timestamp).toLocaleString()}</small>
+                    </div>
+                    <div style="background: ${emergency.status === 'active' ? '#e74c3c' : '#4CAF50'}; 
+                                color: white; 
+                                padding: 4px 8px; 
+                                border-radius: 12px; 
+                                font-size: 10px;
+                                font-weight: bold;">
+                        ${emergency.status.toUpperCase()}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    updateDashboardStats() {
+        const activeCount = this.emergencies.filter(e => e.status === 'active').length;
+        const resolvedCount = this.emergencies.filter(e => e.status === 'resolved').length;
+        
+        // Update the stat boxes
+        const activeElement = document.getElementById('activeEmergencies');
+        const resolvedElement = document.getElementById('resolvedToday');
+        
+        if (activeElement) activeElement.textContent = activeCount;
+        if (resolvedElement) resolvedElement.textContent = resolvedCount;
+    }
+
+    showEmergencyNotification(emergency) {
+        console.log('🚨 NEW EMERGENCY ALERT:', emergency);
+        
+        // Browser notification
+        if (Notification.permission === 'granted') {
+            new Notification(`🚨 New ${emergency.type} Emergency`, {
+                body: `Tourist: ${emergency.tourist}\nLocation: ${emergency.location}`,
+                icon: '/favicon.ico'
+            });
+        }
+        
+        // Audio alert (optional)
+        this.playAlertSound();
+    }
+
+    playAlertSound() {
+        // Simple beep sound for alert
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 1);
+        } catch (error) {
+            console.log('Audio alert not supported');
+        }
+    }
+
+    // Public methods
+    viewEmergencyDetails(emergencyId) {
+        const emergency = this.emergencies.find(e => e.id === emergencyId);
+        if (emergency) {
+            alert(`🚨 Emergency Details:\n\nType: ${emergency.type}\nTourist: ${emergency.tourist}\nPhone: ${emergency.phone}\nLocation: ${emergency.location}\nTime: ${new Date(emergency.timestamp).toLocaleString()}\nSafety Score: ${emergency.safetyScore || 'N/A'}/100`);
+        }
+    }
+
+    assignResponder(emergencyId) {
+        const emergency = this.emergencies.find(e => e.id === emergencyId);
+        if (emergency) {
+            alert(`👮 Assigning responder to: ${emergency.tourist}\n\nEmergency: ${emergency.type}\nLocation: ${emergency.location}\n\nResponder will be notified immediately.`);
+        }
+    }
+
+    centerOnEmergency(emergencyId) {
+        const emergency = this.emergencies.find(e => e.id === emergencyId);
+        if (emergency && window.map) {
+            let coordinates;
+            if (Array.isArray(emergency.coordinates)) {
+                coordinates = emergency.coordinates;
+            } else if (typeof emergency.coordinates === 'string') {
+                coordinates = emergency.coordinates.split(',').map(Number);
+            }
+
+            if (coordinates) {
+                window.map.setView(coordinates, 16, {
+                    animate: true,
+                    duration: 1
+                });
+                
+                const marker = this.emergencyMarkers.get(emergencyId);
+                if (marker) {
+                    marker.openPopup();
+                }
+            }
+        }
+    }
+}
+
+// Initialize the authority emergency receiver
+const authorityReceiver = new AuthorityEmergencyReceiver();
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .emergency-marker {
+        animation: pulse 1.5s infinite;
+    }
+    
+    .emergency-item:hover {
+        transform: translateX(5px);
+        transition: transform 0.2s ease;
+    }
+`;
+document.head.appendChild(style);
+
+console.log('🏢 Authority Emergency Receiver Ready - Listening for tourist emergencies...');
