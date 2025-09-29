@@ -1,176 +1,172 @@
-// js/emergency-broadcast.js - Enhanced with live tracking
-class EmergencyBroadcast {
+// emergency-broadcast.js - Real-time emergency communication
+class EmergencyBroadcaster {
     constructor() {
-        this.storageKey = 'touristEmergencies';
-        this.listeners = [];
-        this.activeTrackers = new Map();
-        this.initializeStorage();
+        this.activeEmergencies = new Map();
+        this.authorityListeners = [];
+        this.touristListeners = [];
+        this.emergencyIdCounter = 1;
+        
+        // Initialize with sample data for testing
+        this.initializeSampleData();
+        console.log('🚨 Emergency Broadcast System Started');
     }
 
-    initializeStorage() {
-        if (!localStorage.getItem(this.storageKey)) {
-            localStorage.setItem(this.storageKey, JSON.stringify([]));
-        }
+    initializeSampleData() {
+        // Add sample emergencies for testing
+        const sampleEmergencies = [
+            {
+                id: 'EMG-001',
+                type: 'critical',
+                title: 'Critical Emergency',
+                location: 'Connaught Place, Delhi',
+                coordinates: [28.6139, 77.2090],
+                timestamp: new Date().toISOString(),
+                status: 'active',
+                tourist: 'Sarah M.',
+                touristId: 'TOUR-001',
+                phone: '+91 98765 43210',
+                safetyScore: 45
+            },
+            {
+                id: 'EMG-002', 
+                type: 'medical',
+                title: 'Medical Assistance Needed',
+                location: 'Marine Drive, Mumbai',
+                coordinates: [19.0760, 72.8777],
+                timestamp: new Date().toISOString(),
+                status: 'active',
+                tourist: 'John D.',
+                touristId: 'TOUR-002',
+                phone: '+91 98765 43211',
+                safetyScore: 60
+            }
+        ];
+
+        sampleEmergencies.forEach(emergency => {
+            this.activeEmergencies.set(emergency.id, emergency);
+        });
     }
 
-    // Enhanced SOS broadcast with live tracking
-    broadcastSOS(emergencyData) {
-        const emergencies = this.getEmergencies();
+    // Register authority dashboard to receive emergencies
+    addAuthorityListener(callback) {
+        this.authorityListeners.push(callback);
+        console.log('🏢 Authority dashboard registered for emergency updates');
         
-        const newEmergency = {
-            id: Date.now() + Math.random().toString(36).substr(2, 9),
-            type: emergencyData.type,
-            touristId: emergencyData.touristId || 'Anonymous_Tourist',
-            tourist: emergencyData.tourist || 'Unknown Tourist',
-            location: emergencyData.location,
-            coordinates: emergencyData.coordinates,
-            timestamp: new Date().toISOString(),
-            status: 'active',
-            severity: this.getSeverity(emergencyData.type),
-            assignedTo: null,
-            updates: [],
-            lastUpdate: new Date().toISOString()
-        };
-
-        emergencies.unshift(newEmergency);
-        this.saveEmergencies(emergencies);
-        this.notifyListeners(newEmergency, 'new');
-        
-        // Start live tracking for this emergency
-        this.startLiveTracking(newEmergency.id, newEmergency.coordinates);
-        
-        return newEmergency.id;
+        // Send current active emergencies to the new listener
+        this.activeEmergencies.forEach(emergency => {
+            callback(emergency, 'existing');
+        });
     }
 
-    // Live location tracking
-    startLiveTracking(emergencyId, initialCoords) {
-        const tracker = {
-            emergencyId,
-            coordinates: initialCoords,
-            interval: setInterval(() => {
-                this.simulateMovement(emergencyId);
-            }, 5000) // Update every 5 seconds
-        };
-        
-        this.activeTrackers.set(emergencyId, tracker);
-        return tracker;
+    // Register tourist app to send emergencies  
+    addTouristListener(callback) {
+        this.touristListeners.push(callback);
+        console.log('👤 Tourist app registered for emergency broadcasting');
     }
 
-    simulateMovement(emergencyId) {
-        const emergencies = this.getEmergencies();
-        const emergencyIndex = emergencies.findIndex(e => e.id === emergencyId);
-        
-        if (emergencyIndex === -1) return;
-
-        const emergency = emergencies[emergencyIndex];
-        
-        // Add small random movement to coordinates
-        const latChange = (Math.random() - 0.5) * 0.001;
-        const lngChange = (Math.random() - 0.5) * 0.001;
-        
-        let newCoords;
-        if (Array.isArray(emergency.coordinates)) {
-            newCoords = [
-                emergency.coordinates[0] + latChange,
-                emergency.coordinates[1] + lngChange
-            ];
-        } else {
-            const [lat, lng] = emergency.coordinates.split(',').map(Number);
-            newCoords = [lat + latChange, lng + lngChange];
-        }
-
-        // Update emergency coordinates
-        emergency.coordinates = newCoords;
-        emergency.lastUpdate = new Date().toISOString();
-
-        // Save updated emergencies
-        this.saveEmergencies(emergencies);
-
-        // Notify listeners about location update
-        this.notifyListeners(emergency, 'location_update');
-    }
-
-    stopLiveTracking(emergencyId) {
-        const tracker = this.activeTrackers.get(emergencyId);
-        if (tracker && tracker.interval) {
-            clearInterval(tracker.interval);
-        }
-        this.activeTrackers.delete(emergencyId);
-    }
-
-   // In emergency-broadcast.js - Enhanced for live tracking
-class EmergencyBroadcast {
-    // ... existing code ...
-
-    // Method to update tourist location (called from tourist app)
-    updateTouristLocation(emergencyId, newCoordinates) {
-        const emergency = this.getEmergency(emergencyId);
-        if (emergency) {
-            emergency.coordinates = newCoordinates;
-            emergency.lastUpdate = new Date().toISOString();
-            
-            // Broadcast location update to authority dashboard
-            this.broadcastToAuthorities(emergency, 'location_update');
-        }
-    }
-
-    // Enhanced emergency creation with live tracking
-    createEmergency(emergencyData) {
+    // Tourist app calls this to report emergency
+    reportEmergency(emergencyData) {
         const emergency = {
-            id: Date.now(),
-            type: emergencyData.type,
-            title: emergencyData.title,
-            location: emergencyData.location,
-            coordinates: emergencyData.coordinates,
+            id: `EMG-${Date.now()}`,
             timestamp: new Date().toISOString(),
-            time: new Date().toLocaleTimeString(),
             status: 'active',
-            tourist: emergencyData.tourist,
-            phone: emergencyData.phone,
-            touristId: emergencyData.touristId,
-            lastUpdate: new Date().toISOString()
+            ...emergencyData
         };
 
-        this.activeEmergencies.push(emergency);
-        this.broadcastToAuthorities(emergency, 'new');
-        
-        return emergency;
-    }
-}
+        console.log('🚨 NEW EMERGENCY REPORTED:', emergency);
 
-    // Get active emergencies
+        // Store the emergency
+        this.activeEmergencies.set(emergency.id, emergency);
+
+        // Notify all authority dashboards
+        this.authorityListeners.forEach(callback => {
+            try {
+                callback(emergency, 'new');
+            } catch (error) {
+                console.error('Error notifying authority:', error);
+            }
+        });
+
+        return emergency.id;
+    }
+
+    // Update emergency status
+    updateEmergency(emergencyId, updates) {
+        const emergency = this.activeEmergencies.get(emergencyId);
+        if (emergency) {
+            Object.assign(emergency, updates);
+            console.log('📝 Emergency updated:', emergencyId, updates);
+
+            // Notify all authority dashboards
+            this.authorityListeners.forEach(callback => {
+                try {
+                    callback(emergency, 'update');
+                } catch (error) {
+                    console.error('Error notifying authority:', error);
+                }
+            });
+
+            return true;
+        }
+        return false;
+    }
+
+    // Resolve emergency
+    resolveEmergency(emergencyId) {
+        return this.updateEmergency(emergencyId, { 
+            status: 'resolved',
+            resolvedAt: new Date().toISOString()
+        });
+    }
+
+    // Get all active emergencies
     getActiveEmergencies() {
-        return this.getEmergencies().filter(e => e.status === 'active');
+        return Array.from(this.activeEmergencies.values())
+            .filter(emergency => emergency.status === 'active');
     }
 
-    // Get all emergencies
-    getEmergencies() {
-        return JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+    // Get emergency by ID
+    getEmergency(emergencyId) {
+        return this.activeEmergencies.get(emergencyId);
     }
 
-    saveEmergencies(emergencies) {
-        localStorage.setItem(this.storageKey, JSON.stringify(emergencies));
-        window.dispatchEvent(new Event('storage'));
-    }
+    // Simulate tourist movement (for demo)
+    simulateTouristMovement(emergencyId) {
+        const emergency = this.activeEmergencies.get(emergencyId);
+        if (emergency && emergency.status === 'active') {
+            // Add small random movement
+            const latChange = (Math.random() - 0.5) * 0.001;
+            const lngChange = (Math.random() - 0.5) * 0.001;
+            
+            if (Array.isArray(emergency.coordinates)) {
+                emergency.coordinates[0] += latChange;
+                emergency.coordinates[1] += lngChange;
+            }
+            
+            emergency.lastUpdate = new Date().toISOString();
 
-    addEmergencyListener(callback) {
-        this.listeners.push(callback);
-    }
-
-    notifyListeners(emergency, action) {
-        this.listeners.forEach(callback => callback(emergency, action));
-    }
-
-    getSeverity(type) {
-        const severityMap = {
-            'critical': 'HIGH',
-            'medical': 'HIGH', 
-            'security': 'MEDIUM',
-            'support': 'LOW'
-        };
-        return severityMap[type] || 'MEDIUM';
+            // Notify authorities about movement
+            this.authorityListeners.forEach(callback => {
+                try {
+                    callback(emergency, 'location_update');
+                } catch (error) {
+                    console.error('Error notifying movement:', error);
+                }
+            });
+        }
     }
 }
 
-// Global instance
-const emergencyBroadcast = new EmergencyBroadcast();
+// Create global instance
+window.emergencyBroadcaster = new EmergencyBroadcaster();
+
+// Start movement simulation for demo emergencies
+setInterval(() => {
+    window.emergencyBroadcaster.activeEmergencies.forEach((emergency, id) => {
+        if (emergency.status === 'active') {
+            window.emergencyBroadcaster.simulateTouristMovement(id);
+        }
+    });
+}, 8000); // Update every 8 seconds
+
+console.log('📡 Emergency Broadcast System Ready - Listening for emergencies...');
